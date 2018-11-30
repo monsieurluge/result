@@ -1,0 +1,73 @@
+# Result
+
+The goal of the Result library is to say goodbye to the `if` and `try catch` control structures when requesting a storage or any object who can return either "nothing" or the desired result.
+
+The code also becomes more declarative and object oriented.
+
+## Objects types
+
+### Error
+
+The Error object helps to identify the error thrown in order to trace it efficiently.
+
+Example, using a `UserNotFound` error thrown when the user was not found in the storage:
+
+```php
+<?php
+
+namespace App\Error;
+
+use App\Domain\UserId;
+use monsieurluge\Result\Error\Error;
+
+final class UserNotFound implements Error
+{
+    private $uniqueId;
+
+    public function __construct(UserId $uniqueId)
+    {
+        $this->uniqueId = $uniqueId;
+    }
+
+    public function code(): string
+    {
+        return 'sto-42'; // a dedicated and unique error code
+    }
+
+    public function message(): string
+    {
+        return sprintf(
+            'the user "%s" does not exist',
+            $this->uniqueId->value()
+        );
+    }
+}
+```
+
+```php
+<?php
+
+namespace App\Repository;
+
+use App\Domain\UserId;
+use App\Repository\UserRepository;
+use monsieurluge\Result\Error\Error;
+use monsieurluge\Result\Result\Failure;
+use monsieurluge\Result\Result\Success;
+
+final class BaseUserRepository implements UserRepository
+{
+    [...] // variables declarations, constructor, etc
+
+    public function user(UserId $name): Result // Result<User>
+    {
+        $user = $this->storage->getUserByName($name->value());
+
+        return is_null($user)
+            ? new Failure(
+                new UserNotFound($name)
+            )
+            : new Success($this->userFactory->fromDbModel($user));
+    }
+}
+```
