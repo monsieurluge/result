@@ -101,3 +101,90 @@ final class BaseUserRepository implements UserRepository
     }
 }
 ```
+
+### Result
+
+The Result objects helps to write declarative code and to throw away the usuals `if (is_null($object))` and `try catch` control structures.
+
+So, the Exceptions are only used for what they are originally intended for: throw an alert because of a exceptional situation that cannot be handled normally.
+
+Example, using a complete selling process:
+
+```php
+<?php
+
+final class Agent
+{
+    [...] // variables declarations, constructor, etc
+
+    public function sellProduct(Product $newSuperProduct) // Result<Bill>
+    {
+        return $this->callCenter
+            ->call(new PhoneNumber('0123456789')) // Result<Person>
+            ->then(new PresentProduct($newSuperProduct))
+            ->then(new Sale($newSuperProduct))
+            ->map(function (Person $client) use ($newSuperProduct) {
+                return $this->createBill($client, $newSuperProduct); // Bill
+            })
+            ->else(new SaleRefused($this));
+    }
+}
+```
+
+## Complete examples
+
+### Send a HTTP #200 or #404 response via a controller
+
+```php
+<?php
+
+use monsieurluge\Result\Action\CustomAction;
+use monsieurluge\Result\Error\BaseError;
+use monsieurluge\Result\Error\Error;
+use monsieurluge\Result\Result\Result;
+use monsieurluge\Result\Result\Success;
+use App\Domain\User;
+use App\Repository\UserRepository;
+use Symfony\Component\HttpFoundation\Response;
+
+interface User
+{
+    public function id(): string;
+
+    public function fullname(): string;
+}
+
+class UserController
+{
+    private $repository;
+
+    public function __construct(UserRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    public function index()
+    {
+        $userToResponse = function(User $user) { // f(User):Response
+            return new Success(
+                new Response(
+                    [ 'id' => $user->id(), 'name' => $user->fullname() ],
+                    Response::HTTP_OK
+                )
+            );
+        };
+
+        $createUserNotFoundResponse = function(Error $error) {
+            return new Response(
+                sprintf('user not found (error #%s)', $error->code()),
+                Response::HTTP_NOT_FOUND
+            );
+        };
+
+        return $userRepository
+            ->findByName('Homer Simpson')
+            ->map($userToResponse)
+            ->getValueOrExecOnFailure($createUserNotFoundResponse);
+    }
+}
+```
