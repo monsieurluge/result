@@ -5,39 +5,69 @@ namespace monsieurluge\Result\Result;
 use Closure;
 use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\Result;
+use monsieurluge\Result\Result\Success;
 
+/**
+ * A combined results.
+ */
 final class Combined implements Result
 {
 
-        /**
-         * @inheritDoc
-         */
-        public function getValueOrExecOnFailure(Closure $expression)
-        {
-            return false;
-        }
+    /** @var Result **/
+    private $firstResult;
+    /** @var Result **/
+    private $secondResult;
 
-        /**
-         * @inheritDoc
-         */
-        public function map(Closure $expression): Result
-        {
-            return $this;
-        }
+    /**
+     * @codeCoverageIgnore
+     *
+     * @param Result $first
+     * @param Result $second
+     */
+    public function __construct(Result $first, Result $second)
+    {
+        $this->firstResult  = $first;
+        $this->secondResult = $second;
+    }
 
-        /**
-         * @inheritDoc
-         */
-        public function mapOnFailure(Closure $expression): Result
-        {
-            return $this;
-        }
+    /**
+     * @inheritDoc
+     */
+    public function getValueOrExecOnFailure(Closure $expression)
+    {
+        return $this->firstResult
+            ->map(function ($firstValue) use ($expression) {
+                return $this->secondResult
+                    ->map(function ($secondValue) use ($firstValue) {
+                        return [ $firstValue, $secondValue ];
+                    })
+                    ->getValueOrExecOnFailure($expression);
+            })
+            ->getValueOrExecOnFailure($expression);
+    }
 
-        /**
-         * @inheritDoc
-         */
-        public function then(Action $action): Result
-        {
-            return $this;
-        }
+    /**
+     * @inheritDoc
+     */
+    public function map(Closure $expression): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function mapOnFailure(Closure $expression): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function then(Action $action): Result
+    {
+        return $this;
+    }
+
 }
