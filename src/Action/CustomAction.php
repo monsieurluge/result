@@ -4,6 +4,7 @@ namespace monsieurluge\Result\Action;
 
 use Closure;
 use monsieurluge\Result\Action\Action;
+use monsieurluge\Result\Result\Result;
 
 /**
  * A generic action for which the behavior is determined at its construction.
@@ -18,7 +19,7 @@ final class CustomAction implements Action
     /**
      * @codeCoverageIgnore
      *
-     * @param Closure $expression the expression to apply to the target
+     * @param Closure $expression the expression to apply to the target which returns a Result.
      */
     public function __construct(Closure $expression)
     {
@@ -28,9 +29,9 @@ final class CustomAction implements Action
     /**
      * @inheritDoc
      */
-    public function process($target): void
+    public function process($target): Result
     {
-        ($this->expression)($target);
+        return ($this->expression)($target);
     }
 
 }
