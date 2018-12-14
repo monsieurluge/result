@@ -31,17 +31,6 @@ final class Failure implements Result
 
     /**
      * @inheritDoc
-     * @return Result a failed Result
-     */
-    public function else(Action $action): Result
-    {
-        $action->process($this->error);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
      */
     public function getValueOrExecOnFailure(Closure $expression)
     {
