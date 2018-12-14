@@ -57,9 +57,7 @@ final class Success implements Result
     */
     public function then(Action $action): Result
     {
-        $action->process($this->value);
-
-        return $this;
+        return $action->process($this->value);
     }
 
 }
