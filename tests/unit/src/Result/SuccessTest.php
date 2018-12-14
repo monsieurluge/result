@@ -2,6 +2,7 @@
 
 namespace tests\unit\Result;
 
+use Closure;
 use monsieurluge\Result\Action\CustomAction;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
@@ -20,7 +21,7 @@ final class SuccessTest extends TestCase
         $success = new Success('success');
 
         // WHEN
-        $testSubject = $success->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+        $testSubject = $success->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('success', $testSubject);
@@ -40,7 +41,7 @@ final class SuccessTest extends TestCase
         // WHEN
         $testSubject = $success
             ->map($toUppercase)
-            ->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('SUCCESS', $testSubject);
@@ -81,7 +82,7 @@ final class SuccessTest extends TestCase
         $result = $success
             ->map($toUpperCase)
             ->mapOnFailure(function() use ($testSubject) { $testSubject++; })
-            ->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('SUCCESS', $result);
@@ -107,7 +108,7 @@ final class SuccessTest extends TestCase
         $result = $success
             ->mapOnFailure(function() use ($testSubject) { $testSubject++; })
             ->map($toUpperCase)
-            ->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('SUCCESS', $result);
@@ -136,6 +137,16 @@ final class SuccessTest extends TestCase
 
         // THEN
         $this->assertSame(666, $testSubject->value());
+    }
+
+    /**
+     * Returns a Closure: f(Error) -> string
+     *
+     * @return Closure
+     */
+    private function returnErrorMessage(): Closure
+    {
+        return function(Error $error) { return $error->message(); };
     }
 
 }
