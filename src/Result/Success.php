@@ -29,14 +29,6 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function else(Action $action): Result
-    {
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return $this->value;

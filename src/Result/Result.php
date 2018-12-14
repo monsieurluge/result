@@ -9,17 +9,6 @@ interface Result
 {
 
     /**
-     * Calls the action on the result's error.
-     *
-     * <code>else(Action):Result&lt;T&gt;</code>
-     *
-     * @param Action $action the action to call (Action::process(Error))
-     *
-     * @return Result a Result&lt;T&gt;
-     */
-    public function else(Action $action): Result;
-
-    /**
      * Returns the result's value if it succeeded or the expression's return value
      *   if it is a failure. The failure's error will be provided to the expression.
      *
