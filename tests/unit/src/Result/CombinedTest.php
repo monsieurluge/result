@@ -6,6 +6,7 @@ use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Combined;
+use monsieurluge\Result\Result\CombinedValues;
 use monsieurluge\Result\Result\Failure;
 use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
@@ -94,6 +95,38 @@ final class CombinedTest extends TestCase
 
         // THEN
         $this->assertSame('failure', $testSubject);
+    }
+
+    /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::map
+     */
+    public function testTodo()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Success('test'),
+            new Success('ok')
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->map($this->concatTheStringValues())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertSame('test ok', $testSubject);
+    }
+
+    /**
+     * Returns the concatented string values.
+     *   ex: 'foo bar' when the first value = 'foo' and the second = 'bar'
+     *
+     * @return Closure a Closure as follows: f(CombinedValues) -> string
+     */
+    private function concatTheStringValues(): Closure
+    {
+        return function (CombinedValues $values) { return sprintf('%s %s', $values->first(), $values->second()); };
     }
 
     /**
