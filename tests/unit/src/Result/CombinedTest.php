@@ -14,7 +14,7 @@ final class CombinedTest extends TestCase
     /**
      * @covers Combined::getValueOrExecOnFailure
      */
-    public function testGetValueOfSuccessesReturnsAnArrayOfResultingValues()
+    public function testGetValueOfSuccessesReturnsCombinedValues()
     {
         // GIVEN
         $combined = new Combined(
@@ -26,7 +26,9 @@ final class CombinedTest extends TestCase
         $testSubject = $combined->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
-        $this->assertSame([ 'test', 'ok' ], $testSubject);
+        $this->assertSame('test', $testSubject->first());
+
+        $this->assertSame('ok', $testSubject->second());
     }
 
     /**

@@ -4,6 +4,7 @@ namespace monsieurluge\Result\Result;
 
 use Closure;
 use monsieurluge\Result\Action\Action;
+use monsieurluge\Result\Result\BaseCombinedValues;
 use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
 
@@ -32,6 +33,7 @@ final class Combined implements Result
 
     /**
      * @inheritDoc
+     * @return mixed either CombinedValues or Closure's result
      */
     public function getValueOrExecOnFailure(Closure $expression)
     {
@@ -39,7 +41,7 @@ final class Combined implements Result
             ->map(function ($firstValue) use ($expression) {
                 return $this->secondResult
                     ->map(function ($secondValue) use ($firstValue) {
-                        return [ $firstValue, $secondValue ];
+                        return new BaseCombinedValues($firstValue, $secondValue);
                     })
                     ->getValueOrExecOnFailure($expression);
             })
