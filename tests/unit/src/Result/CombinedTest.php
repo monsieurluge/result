@@ -101,7 +101,7 @@ final class CombinedTest extends TestCase
      * @covers Combined::getValueOrExecOnFailure
      * @covers Combined::map
      */
-    public function testTodo()
+    public function testMapSuccessesReturnsTheMappedResult()
     {
         // GIVEN
         $combined = new Combined(
@@ -119,7 +119,7 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * Returns the concatented string values.
+     * Returns the concatenated string values.
      *   ex: 'foo bar' when the first value = 'foo' and the second = 'bar'
      *
      * @return Closure a Closure as follows: f(CombinedValues) -> string

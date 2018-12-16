@@ -53,7 +53,7 @@ final class Combined implements Result
      */
     public function map(Closure $expression): Result
     {
-        return $this;
+        return $this->firstResult->then($this->callExpressionOnCombinedResults($expression, $this->secondResult));
     }
 
     /**
@@ -70,6 +70,42 @@ final class Combined implements Result
     public function then(Action $action): Result
     {
         return $this;
+    }
+
+    /**
+     * Returns an Action which calls the expression on the target (the first Result's value)
+     *   and the second Result's value, all combined.
+     *
+     * @param Closure $expression   the expression to call as follows: f(CombinedValues) -> mixed
+     * @param Result  $secondResult the secondary Result from wich the value is mapped
+     *
+     * @return Action
+     */
+    private function callExpressionOnCombinedResults(Closure $expression, Result $secondResult): Action
+    {
+        return new class($expression, $secondResult) implements Action
+        {
+            private $expression;
+            private $secondResult;
+
+            public function __construct(Closure $expression, Result $secondResult)
+            {
+                $this->expression   = $expression;
+                $this->secondResult = $secondResult;
+            }
+
+            public function process($target): Result
+            {
+                return $this->secondResult->map($this->toto($this->expression, $target));
+            }
+
+            private function toto(Closure $expression, $firstValue): Closure
+            {
+                return function ($secondValue) use ($expression, $firstValue) {
+                    return ($expression)(new BaseCombinedValues($firstValue, $secondValue));
+                };
+            }
+        };
     }
 
 }
