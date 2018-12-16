@@ -61,7 +61,9 @@ final class Combined implements Result
      */
     public function mapOnFailure(Closure $expression): Result
     {
-        return $this;
+        return $this->firstResult
+            ->mapOnFailure($expression)
+            ->then($this->needRefactoring1($expression));
     }
 
     /**
@@ -70,6 +72,49 @@ final class Combined implements Result
     public function then(Action $action): Result
     {
         return $this;
+    }
+
+    private function needRefactoring1($expression): Action
+    {
+        return new class($expression, $this->secondResult) implements Action
+        {
+            private $expression;
+            private $secondResult;
+
+            public function __construct(Closure $expression, Result $secondResult)
+            {
+                $this->expression   = $expression;
+                $this->secondResult = $secondResult;
+            }
+
+            public function process($target): Result // target = first value
+            {
+                return $this->secondResult
+                    ->mapOnFailure($this->expression)
+                    ->then($this->needRefactoring2($target));
+            }
+
+            private function needRefactoring2($firstValue): Action
+            {
+                return new class($firstValue) implements Action
+                {
+                    private $firstValue;
+
+                    public function __construct($firstValue)
+                    {
+                        $this->firstValue = $firstValue;
+                    }
+
+                    public function process($target): Result // target = second value
+                    {
+                        return new Combined(
+                            new Success($this->firstValue),
+                            new Success($target)
+                        );
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -96,10 +141,10 @@ final class Combined implements Result
 
             public function process($target): Result
             {
-                return $this->secondResult->map($this->toto($this->expression, $target));
+                return $this->secondResult->map($this->callTheExpressionUsingTheValues($this->expression, $target));
             }
 
-            private function toto(Closure $expression, $firstValue): Closure
+            private function callTheExpressionUsingTheValues(Closure $expression, $firstValue): Closure
             {
                 return function ($secondValue) use ($expression, $firstValue) {
                     return ($expression)(new BaseCombinedValues($firstValue, $secondValue));
