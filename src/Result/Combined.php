@@ -71,7 +71,53 @@ final class Combined implements Result
      */
     public function then(Action $action): Result
     {
-        return $this;
+        return $this->firstResult
+            ->then($this->processWithFirstValue($action, $this->processWithSecondValue(), $this->secondResult));
+    }
+
+    private function processWithFirstValue($action, $nextAction, $secondResult): Action
+    {
+        return new class($action, $nextAction, $secondResult) implements Action
+        {
+            private $action;
+            private $nextAction;
+            private $secondResult;
+
+            public function __construct(Action $action, Closure $nextAction, Result $secondResult)
+            {
+                $this->action       = $action;
+                $this->nextAction   = $nextAction;
+                $this->secondResult = $secondResult;
+            }
+
+            public function process($target): Result // first value
+            {
+                return $this->secondResult->then(($this->nextAction)($this->action, $target));
+            }
+        };
+    }
+
+    private function processWithSecondValue(): Closure
+    {
+        return function($action, $firstValue): Action
+        {
+            return new class($action, $firstValue) implements Action
+            {
+                private $action;
+                private $firstValue;
+
+                public function __construct(Action $action, $firstValue)
+                {
+                    $this->action     = $action;
+                    $this->firstValue = $firstValue;
+                }
+
+                public function process($target): Result // second value
+                {
+                    return $this->action->process(new BaseCombinedValues($this->firstValue, $target));
+                }
+            };
+        };
     }
 
     private function needRefactoring1($expression): Action
