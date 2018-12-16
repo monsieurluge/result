@@ -119,6 +119,77 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::map
+     */
+    public function testMapSuccessAndFailureReturnsFailure()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Success('test'),
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            )
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->map($this->concatTheStringValues())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertSame('failure', $testSubject);
+    }
+
+    /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::map
+     */
+    public function testMapFailureAndSuccessReturnsFailure()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+            new Success('test')
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->map($this->concatTheStringValues())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertSame('failure', $testSubject);
+    }
+
+    /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::map
+     */
+    public function testMapFailuresReturnsTheFirstFailure()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+            new Failure(
+                new BaseError('err-4567', 'error')
+            )
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->map($this->concatTheStringValues())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertSame('failure', $testSubject);
+    }
+
+    /**
      * Returns the concatenated string values.
      *   ex: 'foo bar' when the first value = 'foo' and the second = 'bar'
      *
