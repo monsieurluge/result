@@ -5,6 +5,7 @@ namespace tests\unit\Result;
 use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
+use monsieurluge\Result\Result\BaseCombinedValues;
 use monsieurluge\Result\Result\Combined;
 use monsieurluge\Result\Result\CombinedValues;
 use monsieurluge\Result\Result\Failure;
@@ -189,9 +190,43 @@ final class CombinedTest extends TestCase
         $this->assertSame('failure', $testSubject);
     }
 
+    public function testMapOnFailureWithSuccessesDoesNothing()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Success('test'),
+            new Success('ok')
+        );
+
+        $expexted = new BaseCombinedValues('test', 'ok');
+
+        // WHEN
+        $testSubject = $combined
+            ->mapOnFailure($this->addPrefixToErrorMessage())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertEquals($expexted, $testSubject);
+    }
+
     /**
-     * Returns the concatenated string values.
-     *   ex: 'foo bar' when the first value = 'foo' and the second = 'bar'
+     * Returns a Closure whitch adds the "[KO]" prefix to an error message.
+     *
+     * @return Closure a Closure as follows: f(Error) -> Error
+     */
+    private function addPrefixToErrorMessage(): Closure
+    {
+        return function (Error $error) {
+            return new BaseError(
+                $error->code(),
+                sprintf('[KO] %s', $error->message())
+            );
+        };
+    }
+
+    /**
+     * Returns a function which concatenate two string values.
+     *   ex: returns "foo bar" when the first value = "foo" and the second = "bar"
      *
      * @return Closure a Closure as follows: f(CombinedValues) -> string
      */
