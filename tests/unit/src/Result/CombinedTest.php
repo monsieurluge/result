@@ -190,6 +190,10 @@ final class CombinedTest extends TestCase
         $this->assertSame('failure', $testSubject);
     }
 
+    /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::mapOnFailure
+     */
     public function testMapOnFailureWithSuccessesDoesNothing()
     {
         // GIVEN
