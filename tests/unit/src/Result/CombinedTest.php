@@ -214,6 +214,77 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::mapOnFailure
+     */
+    public function testMapOnFailureWithSuccessAndFailureMapsTheError()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Success('test'),
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            )
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->mapOnFailure($this->addPrefixToErrorMessage())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertEquals('[KO] failure', $testSubject);
+    }
+
+    /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::mapOnFailure
+     */
+    public function testMapOnFailureWithFailureAndSuccessMapsTheError()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+            new Success('test')
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->mapOnFailure($this->addPrefixToErrorMessage())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertEquals('[KO] failure', $testSubject);
+    }
+
+    /**
+     * @covers Combined::getValueOrExecOnFailure
+     * @covers Combined::mapOnFailure
+     */
+    public function testMapOnFailureWithFailuresMapsTheFirstError()
+    {
+        // GIVEN
+        $combined = new Combined(
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+            new Failure(
+                new BaseError('err-4567', 'error')
+            )
+        );
+
+        // WHEN
+        $testSubject = $combined
+            ->mapOnFailure($this->addPrefixToErrorMessage())
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN
+        $this->assertEquals('[KO] failure', $testSubject);
+    }
+
+    /**
      * Returns a Closure whitch adds the "[KO]" prefix to an error message.
      *
      * @return Closure a Closure as follows: f(Error) -> Error
