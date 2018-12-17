@@ -18,7 +18,7 @@ final class CombinedTest extends TestCase
 {
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
     public function testGetValueOfSuccessesReturnsCombinedValues()
     {
@@ -38,7 +38,7 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
     public function testGetValueOfSuccessAndFailureReturnsTheError()
     {
@@ -58,7 +58,7 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
     public function testGetValueOfFailureAndSuccessReturnsTheError()
     {
@@ -78,7 +78,7 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
     public function testGetValueOfFailuresReturnsTheFirstError()
     {
@@ -100,8 +100,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::map
      */
     public function testMapSuccessesReturnsTheMappedResult()
     {
@@ -121,8 +121,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::map
      */
     public function testMapSuccessAndFailureReturnsFailure()
     {
@@ -144,8 +144,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::map
      */
     public function testMapFailureAndSuccessReturnsFailure()
     {
@@ -167,8 +167,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::map
      */
     public function testMapFailuresReturnsTheFirstFailure()
     {
@@ -192,8 +192,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::mapOnFailure
      */
     public function testMapOnFailureWithSuccessesDoesNothing()
     {
@@ -215,8 +215,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::mapOnFailure
      */
     public function testMapOnFailureWithSuccessAndFailureMapsTheError()
     {
@@ -238,8 +238,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::mapOnFailure
      */
     public function testMapOnFailureWithFailureAndSuccessMapsTheError()
     {
@@ -261,8 +261,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::mapOnFailure
      */
     public function testMapOnFailureWithFailuresMapsTheFirstError()
     {
@@ -286,8 +286,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::then
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::then
      */
     public function testSuccessesTriggersTheThenAction()
     {
@@ -307,8 +307,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::then
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::then
      */
     public function testSuccessAndFailureDoesNotTriggerTheThenActionAndReturnsAnError()
     {
@@ -330,8 +330,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::then
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::then
      */
     public function testFailureAndSuccessDoesNotTriggerTheThenActionAndReturnsAnError()
     {
@@ -353,8 +353,8 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers Combined::getValueOrExecOnFailure
-     * @covers Combined::then
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::then
      */
     public function testFailuresDoesNotTriggerTheThenActionAndReturnsTheFirstError()
     {

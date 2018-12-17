@@ -75,6 +75,16 @@ final class Combined implements Result
             ->then($this->processWithFirstValue($action, $this->processWithSecondValue(), $this->secondResult));
     }
 
+    /**
+     * [processWithFirstValue description]
+     * @codeCoverageIgnore
+     *
+     * @param  [type] $action       [description]
+     * @param  [type] $nextAction   [description]
+     * @param  [type] $secondResult [description]
+     *
+     * @return Action               [description]
+     */
     private function processWithFirstValue($action, $nextAction, $secondResult): Action
     {
         return new class($action, $nextAction, $secondResult) implements Action
@@ -97,6 +107,12 @@ final class Combined implements Result
         };
     }
 
+    /**
+     * [processWithSecondValue description]
+     * @codeCoverageIgnore
+     *
+     * @return Closure [description]
+     */
     private function processWithSecondValue(): Closure
     {
         return function($action, $firstValue): Action
@@ -120,6 +136,14 @@ final class Combined implements Result
         };
     }
 
+    /**
+     * [needRefactoring1 description]
+     * @codeCoverageIgnore
+     *
+     * @param  [type] $expression [description]
+     *
+     * @return Action             [description]
+     */
     private function needRefactoring1($expression): Action
     {
         return new class($expression, $this->secondResult) implements Action
@@ -166,6 +190,7 @@ final class Combined implements Result
     /**
      * Returns an Action which calls the expression on the target (the first Result's value)
      *   and the second Result's value, all combined.
+     * @codeCoverageIgnore
      *
      * @param Closure $expression   the expression to call as follows: f(CombinedValues) -> mixed
      * @param Result  $secondResult the secondary Result from wich the value is mapped

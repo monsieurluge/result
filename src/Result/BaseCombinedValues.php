@@ -27,6 +27,7 @@ final class BaseCombinedValues implements CombinedValues
 
     /**
     * @inheritDoc
+    * @codeCoverageIgnore
     */
     public function first()
     {
@@ -35,6 +36,7 @@ final class BaseCombinedValues implements CombinedValues
 
     /**
      * @inheritDoc
+     * @codeCoverageIgnore
      */
     public function second()
     {
