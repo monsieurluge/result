@@ -63,7 +63,7 @@ final class Combined implements Result
     {
         return $this->firstResult
             ->mapOnFailure($expression)
-            ->then($this->needRefactoring1($expression));
+            ->then($this->createCombineOrMapExpressionAction($expression));
     }
 
     /**
@@ -137,14 +137,14 @@ final class Combined implements Result
     }
 
     /**
-     * [needRefactoring1 description]
+     * [createCombineOrMapExpressionAction description]
      * @codeCoverageIgnore
      *
      * @param  [type] $expression [description]
      *
      * @return Action             [description]
      */
-    private function needRefactoring1($expression): Action
+    private function createCombineOrMapExpressionAction($expression): Action
     {
         return new class($expression, $this->secondResult) implements Action
         {
@@ -161,24 +161,24 @@ final class Combined implements Result
             {
                 return $this->secondResult
                     ->mapOnFailure($this->expression)
-                    ->then($this->needRefactoring2($target));
+                    ->then($this->createCombineTwoValuesAction($target));
             }
 
-            private function needRefactoring2($firstValue): Action
+            private function createCombineTwoValuesAction($first): Action
             {
-                return new class($firstValue) implements Action
+                return new class($first) implements Action
                 {
-                    private $firstValue;
+                    private $first;
 
-                    public function __construct($firstValue)
+                    public function __construct($first)
                     {
-                        $this->firstValue = $firstValue;
+                        $this->first = $first;
                     }
 
                     public function process($target): Result // target = second value
                     {
                         return new Combined(
-                            new Success($this->firstValue),
+                            new Success($this->first),
                             new Success($target)
                         );
                     }
