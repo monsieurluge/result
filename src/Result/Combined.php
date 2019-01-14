@@ -37,15 +37,7 @@ final class Combined implements Result
      */
     public function getValueOrExecOnFailure(Closure $expression)
     {
-        return $this->firstResult
-            ->map(function ($firstValue) use ($expression) {
-                return $this->secondResult
-                    ->map(function ($secondValue) use ($firstValue) {
-                        return new BaseCombinedValues($firstValue, $secondValue);
-                    })
-                    ->getValueOrExecOnFailure($expression);
-            })
-            ->getValueOrExecOnFailure($expression);
+        return $this->and()->getValueOrExecOnFailure($expression);
     }
 
     /**
@@ -53,7 +45,7 @@ final class Combined implements Result
      */
     public function map(Closure $expression): Result
     {
-        return $this->firstResult->then($this->callExpressionOnCombinedResults($expression, $this->secondResult));
+        return $this->and()->map($expression);
     }
 
     /**
@@ -61,9 +53,7 @@ final class Combined implements Result
      */
     public function mapOnFailure(Closure $expression): Result
     {
-        return $this->firstResult
-            ->mapOnFailure($expression)
-            ->then($this->createCombineOrMapExpressionAction($expression));
+        return $this->and()->mapOnFailure($expression);
     }
 
     /**
@@ -71,155 +61,57 @@ final class Combined implements Result
      */
     public function then(Action $action): Result
     {
-        return $this->firstResult
-            ->then($this->processWithFirstValue($action, $this->processWithSecondValue(), $this->secondResult));
+        return $this->and()->then($action);
     }
 
     /**
-     * [processWithFirstValue description]
-     * @codeCoverageIgnore
+     * Returns the combined values or the first Error encountered.
      *
-     * @param  [type] $action       [description]
-     * @param  [type] $nextAction   [description]
-     * @param  [type] $secondResult [description]
-     *
-     * @return Action               [description]
+     * @return Result either a Result<{x,y}> or an Error
      */
-    private function processWithFirstValue($action, $nextAction, $secondResult): Action
+    private function and(): Result
     {
-        return new class($action, $nextAction, $secondResult) implements Action
-        {
-            private $action;
-            private $nextAction;
-            private $secondResult;
-
-            public function __construct(Action $action, Closure $nextAction, Result $secondResult)
-            {
-                $this->action       = $action;
-                $this->nextAction   = $nextAction;
-                $this->secondResult = $secondResult;
-            }
-
-            public function process($target): Result // first value
-            {
-                return $this->secondResult->then(($this->nextAction)($this->action, $target));
-            }
-        };
+        return $this->firstResult->then($this->combineWith($this->secondResult, $this->combine()));
     }
 
     /**
-     * [processWithSecondValue description]
-     * @codeCoverageIgnore
+     * Returns a Closure as follows: f(x) -> f(y) -> Result<{x,y}>
      *
-     * @return Closure [description]
+     * @return Closure
      */
-    private function processWithSecondValue(): Closure
+    private function combine(): Closure
     {
-        return function($action, $firstValue): Action
-        {
-            return new class($action, $firstValue) implements Action
-            {
-                private $action;
-                private $firstValue;
-
-                public function __construct(Action $action, $firstValue)
-                {
-                    $this->action     = $action;
-                    $this->firstValue = $firstValue;
-                }
-
-                public function process($target): Result // second value
-                {
-                    return $this->action->process(new BaseCombinedValues($this->firstValue, $target));
-                }
+        return function ($firstValue) {
+            return function ($secondValue) use ($firstValue) {
+                return new BaseCombinedValues($firstValue, $secondValue);
             };
         };
     }
 
     /**
-     * [createCombineOrMapExpressionAction description]
-     * @codeCoverageIgnore
+     * Returns an Action which do try to combine a Result's value with an other value.
      *
-     * @param  [type] $expression [description]
-     *
-     * @return Action             [description]
-     */
-    private function createCombineOrMapExpressionAction($expression): Action
-    {
-        return new class($expression, $this->secondResult) implements Action
-        {
-            private $expression;
-            private $secondResult;
-
-            public function __construct(Closure $expression, Result $secondResult)
-            {
-                $this->expression   = $expression;
-                $this->secondResult = $secondResult;
-            }
-
-            public function process($target): Result // target = first value
-            {
-                return $this->secondResult
-                    ->mapOnFailure($this->expression)
-                    ->then($this->createCombineTwoValuesAction($target));
-            }
-
-            private function createCombineTwoValuesAction($first): Action
-            {
-                return new class($first) implements Action
-                {
-                    private $first;
-
-                    public function __construct($first)
-                    {
-                        $this->first = $first;
-                    }
-
-                    public function process($target): Result // target = second value
-                    {
-                        return new Combined(
-                            new Success($this->first),
-                            new Success($target)
-                        );
-                    }
-                };
-            }
-        };
-    }
-
-    /**
-     * Returns an Action which calls the expression on the target (the first Result's value)
-     *   and the second Result's value, all combined.
-     * @codeCoverageIgnore
-     *
-     * @param Closure $expression   the expression to call as follows: f(CombinedValues) -> mixed
-     * @param Result  $secondResult the secondary Result from wich the value is mapped
+     * @param Result  $result  the Result to combine with
+     * @param Closure $combine the "combine" function
      *
      * @return Action
      */
-    private function callExpressionOnCombinedResults(Closure $expression, Result $secondResult): Action
+    private function combineWith(Result $result, Closure $combine): Action
     {
-        return new class($expression, $secondResult) implements Action
+        return new class($result, $combine) implements Action
         {
-            private $expression;
-            private $secondResult;
+            private $combine;
+            private $result;
 
-            public function __construct(Closure $expression, Result $secondResult)
+            public function __construct(Result $result, Closure $combine)
             {
-                $this->expression   = $expression;
-                $this->secondResult = $secondResult;
+                $this->combine = $combine;
+                $this->result  = $result;
             }
 
             public function process($target): Result
             {
-                return $this->secondResult->map($this->callTheExpressionUsingTheValues($this->expression, $target));
-            }
-
-            private function callTheExpressionUsingTheValues(Closure $expression, $firstValue): Closure
-            {
-                return function ($secondValue) use ($expression, $firstValue) {
-                    return ($expression)(new BaseCombinedValues($firstValue, $secondValue));
-                };
+                return $this->result->map(($this->combine)($target));
             }
         };
     }
