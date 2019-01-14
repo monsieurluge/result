@@ -3,6 +3,7 @@
 namespace tests\unit\Action;
 
 use monsieurluge\Result\Action\CustomAction;
+use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
 
 final class CustomActionTest extends TestCase
@@ -15,7 +16,11 @@ final class CustomActionTest extends TestCase
         // GIVEN
         $testSubject = [ 'a', 'b', 'c' ];
 
-        $addAnItem = new CustomAction(function(array $target) { $target[] = 'd'; });
+        $addAnItem = new CustomAction(function(array $target) {
+            $target[] = 'd';
+
+            return new Success($target);
+        });
 
         // WHEN
         $addAnItem->process($testSubject);
@@ -37,7 +42,11 @@ final class CustomActionTest extends TestCase
             public function value(): int { return $this->value; }
         };
 
-        $incrementBy60 = new CustomAction(function($target) { $target->incrementBy(60); });
+        $incrementBy60 = new CustomAction(function($target) {
+            $target->incrementBy(60);
+
+            return new Success($target);
+        });
 
         // WHEN
         $incrementBy60->process($testSubject);

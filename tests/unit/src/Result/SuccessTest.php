@@ -2,9 +2,12 @@
 
 namespace tests\unit\Result;
 
+use Closure;
+use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Action\CustomAction;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
+use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +23,7 @@ final class SuccessTest extends TestCase
         $success = new Success('success');
 
         // WHEN
-        $testSubject = $success->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+        $testSubject = $success->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('success', $testSubject);
@@ -40,7 +43,7 @@ final class SuccessTest extends TestCase
         // WHEN
         $testSubject = $success
             ->map($toUppercase)
-            ->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('SUCCESS', $testSubject);
@@ -81,7 +84,7 @@ final class SuccessTest extends TestCase
         $result = $success
             ->map($toUpperCase)
             ->mapOnFailure(function() use ($testSubject) { $testSubject++; })
-            ->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('SUCCESS', $result);
@@ -107,7 +110,7 @@ final class SuccessTest extends TestCase
         $result = $success
             ->mapOnFailure(function() use ($testSubject) { $testSubject++; })
             ->map($toUpperCase)
-            ->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
         $this->assertSame('SUCCESS', $result);
@@ -118,24 +121,35 @@ final class SuccessTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Success::then
      */
-    public function testThenTriggersTheAction()
+    public function testThenTriggersTheActionAndReturnsNewResult()
     {
         // GIVEN
-        $testSubject = new class() {
-            private $value = 600;
-            public function incrementBy(int $step) { $this->value += $step; }
-            public function value() { return $this->value; }
+        $incrementBy111 = new class() implements Action {
+            public function process($target): Result
+            {
+                return new Success($target + 111);
+            }
         };
 
-        $incrementBy66 = new CustomAction(function($target) { $target->incrementBy(66); });
-
-        $success = new Success($testSubject);
+        $success = new Success(555);
 
         // WHEN
-        $success->then($incrementBy66);
+        $testSubject = $success
+            ->then($incrementBy111)
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN
-        $this->assertSame(666, $testSubject->value());
+        $this->assertSame(666, $testSubject);
+    }
+
+    /**
+     * Returns a Closure: f(Error) -> string
+     *
+     * @return Closure
+     */
+    private function returnErrorMessage(): Closure
+    {
+        return function(Error $error) { return $error->message(); };
     }
 
 }
