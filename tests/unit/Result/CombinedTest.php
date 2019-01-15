@@ -378,7 +378,7 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * Returns a Closure whitch adds the "[KO]" prefix to an error message.
+     * Returns a Closure which adds the "[KO]" prefix to an error message.
      *
      * @return Closure a Closure as follows: f(Error) -> Error
      */

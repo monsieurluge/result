@@ -66,6 +66,7 @@ final class Combined implements Result
 
     /**
      * Returns the combined values or the first Error encountered.
+     * @codeCoverageIgnore
      *
      * @return Result either a Result<{x,y}> or an Error
      */
@@ -76,6 +77,7 @@ final class Combined implements Result
 
     /**
      * Returns a Closure as follows: f(x) -> f(y) -> Result<{x,y}>
+     * @codeCoverageIgnore
      *
      * @return Closure
      */
@@ -90,6 +92,7 @@ final class Combined implements Result
 
     /**
      * Returns an Action which do try to combine a Result's value with an other value.
+     * @codeCoverageIgnore
      *
      * @param Result  $result  the Result to combine with
      * @param Closure $combine the "combine" function
