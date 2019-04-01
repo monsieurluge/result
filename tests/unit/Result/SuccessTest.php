@@ -19,14 +19,14 @@ final class SuccessTest extends TestCase
      */
     public function testGetTheValue()
     {
-        // GIVEN
+        // GIVEN a successful result
         $success = new Success('success');
 
-        // WHEN
-        $testSubject = $success->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN the value is requested
+        $value = $success->getValueOrExecOnFailure($this->returnErrorMessage());
 
-        // THEN
-        $this->assertSame('success', $testSubject);
+        // THEN the value the one used to create the result object
+        $this->assertSame('success', $value);
     }
 
     /**
@@ -35,18 +35,19 @@ final class SuccessTest extends TestCase
      */
     public function testMapChangeTheResultValue()
     {
-        // GIVEN
+        // GIVEN a successful result
         $success = new Success('success');
-
+        // AND a function which takes a text and returns its uppercase version
         $toUppercase = function(string $value) { return strtoupper($value); };
 
-        // WHEN
-        $testSubject = $success
+        // WHEN the function is applied to the result
+        // AND the value is requested
+        $value = $success
             ->map($toUppercase)
             ->getValueOrExecOnFailure($this->returnErrorMessage());
 
-        // THEN
-        $this->assertSame('SUCCESS', $testSubject);
+        // THEN the value is the uppercase version of the original one
+        $this->assertSame('SUCCESS', $value);
     }
 
     /**
@@ -54,16 +55,16 @@ final class SuccessTest extends TestCase
      */
     public function testMapOnFailureIsNotTriggered()
     {
-        // GIVEN
+        // GIVEN a successful result
         $success = new Success('success');
+        // AND a counter
+        $counter = 0;
 
-        $testSubject = 0;
+        // WHEN the counter is incremented if the result is a failure
+        $success->mapOnFailure(function() use ($counter) { $counter++; });
 
-        // WHEN
-        $success->mapOnFailure(function() use ($testSubject) { $testSubject++; });
-
-        // THEN
-        $this->assertSame(0, $testSubject);
+        // THEN the counter has not been updated
+        $this->assertSame(0, $counter);
     }
 
     /**
@@ -73,23 +74,25 @@ final class SuccessTest extends TestCase
      */
     public function testMapThenMapOnFailureCombinations()
     {
-        // GIVEN
+        // GIVEN a successful result
         $success = new Success('success');
-
+        // AND a function which takes a text and returns its uppercase version
         $toUpperCase = function($value) { return strtoupper($value); };
+        // AND a counter
+        $counter = 0;
 
-        $testSubject = 0;
-
-        // WHEN
-        $result = $success
+        // WHEN the function is applied to the result
+        // AND the counter is incremented if the result is a failure
+        // AND the value is requested
+        $value = $success
             ->map($toUpperCase)
-            ->mapOnFailure(function() use ($testSubject) { $testSubject++; })
+            ->mapOnFailure(function() use ($counter) { $counter++; })
             ->getValueOrExecOnFailure($this->returnErrorMessage());
 
-        // THEN
-        $this->assertSame('SUCCESS', $result);
-
-        $this->assertSame(0, $testSubject);
+        // THEN the value is the uppercase version of the original one
+        $this->assertSame('SUCCESS', $value);
+        // AND the counter has not been updated
+        $this->assertSame(0, $counter);
     }
 
     /**
@@ -99,23 +102,25 @@ final class SuccessTest extends TestCase
      */
     public function testMapOnFailureThenMapCombinations()
     {
-        // GIVEN
+        // GIVEN a succesful result
         $success = new Success('success');
-
+        // AND a function which takes a text and returns its uppercase version
         $toUpperCase = function($value) { return strtoupper($value); };
+        // AND a counter
+        $counter = 0;
 
-        $testSubject = 0;
-
-        // WHEN
+        // WHEN the counter is incremented if the result is a failure
+        // AND the function is applied to the result
+        // AND the value is requested
         $result = $success
-            ->mapOnFailure(function() use ($testSubject) { $testSubject++; })
+            ->mapOnFailure(function() use ($counter) { $counter++; })
             ->map($toUpperCase)
             ->getValueOrExecOnFailure($this->returnErrorMessage());
 
-        // THEN
+        // THEN the value is the uppercase version of the original one
         $this->assertSame('SUCCESS', $result);
-
-        $this->assertSame(0, $testSubject);
+        // AND the counter has not been updated
+        $this->assertSame(0, $counter);
     }
 
     /**
@@ -123,23 +128,24 @@ final class SuccessTest extends TestCase
      */
     public function testThenTriggersTheActionAndReturnsNewResult()
     {
-        // GIVEN
+        // GIVEN an action which successfully increments a number by 111
         $incrementBy111 = new class() implements Action {
             public function process($target): Result
             {
                 return new Success($target + 111);
             }
         };
-
+        // AND a successful result
         $success = new Success(555);
 
-        // WHEN
-        $testSubject = $success
+        // WHEN the action is applied to the result
+        // AND its value is requested
+        $value = $success
             ->then($incrementBy111)
             ->getValueOrExecOnFailure($this->returnErrorMessage());
 
-        // THEN
-        $this->assertSame(666, $testSubject);
+        // THEN the value is the starting one increased by 111
+        $this->assertSame(666, $value);
     }
 
     /**
