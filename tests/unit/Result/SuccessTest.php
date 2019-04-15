@@ -182,21 +182,4 @@ final class SuccessTest extends TestCase
         return function(Error $error) { return $error->message(); };
     }
 
-    /**
-     * Returns a Closure: f(Error) -> Action
-     *
-     * @param string $newMessage
-     *
-     * @return Action an action which is always a failure
-     */
-    private function replaceErrorMessageWith(string $newMessage): Action
-    {
-        return new CustomAction(function (Error $error) use ($newMessage) {
-            return new BaseError(
-                $error->code(),
-                $newMessage
-            );
-        });
-    }
-
 }
