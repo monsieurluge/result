@@ -36,6 +36,8 @@ final class Combined implements Result
      */
     public function else(Closure $doSomethingWithError): Result
     {
+        $this->and()->else($doSomethingWithError);
+
         return $this;
     }
 

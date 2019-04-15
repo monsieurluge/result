@@ -406,6 +406,95 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Combined::else
+     */
+    public function testSuccessAndFailureTriggersTheElseMethod()
+    {
+        // GIVEN a success-success combination
+        $combined = new Combined(
+            new Success('test'),
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            )
+        );
+        // AND a class which is used to store a text
+        $storage = new class () {
+            public $text = 'nothing';
+            public function store (string $text) { $this->text = $text; }
+        };
+
+        // WHEN the else method is sent, and the error's code is fetched
+        $code = $combined
+            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
+            ->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error's code was fetched
+        $this->assertSame('err-1234', $code);
+        // AND the stored text was updated using the error's code
+        $this->assertSame('err-1234', $storage->text);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::else
+     */
+    public function testFailureAndSuccessTriggersTheElseMethod()
+    {
+        // GIVEN a success-success combination
+        $combined = new Combined(
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+            new Success('test')
+        );
+        // AND a class which is used to store a text
+        $storage = new class () {
+            public $text = 'nothing';
+            public function store (string $text) { $this->text = $text; }
+        };
+
+        // WHEN the else method is sent, and the error's code is fetched
+        $code = $combined
+            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
+            ->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error's code was fetched
+        $this->assertSame('err-1234', $code);
+        // AND the stored text was updated using the error's code
+        $this->assertSame('err-1234', $storage->text);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::else
+     */
+    public function testFailuresTriggersTheElseMethodProvidingTheFirstError()
+    {
+        // GIVEN a success-success combination
+        $combined = new Combined(
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+            new Failure(
+                new BaseError('err-5678', 'error')
+            )
+        );
+        // AND a class which is used to store a text
+        $storage = new class () {
+            public $text = 'nothing';
+            public function store (string $text) { $this->text = $text; }
+        };
+
+        // WHEN the else method is sent, and the error's code is fetched
+        $code = $combined
+            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
+            ->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error's code was fetched
+        $this->assertSame('err-1234', $code);
+        // AND the stored text was updated using the error's code
+        $this->assertSame('err-1234', $storage->text);
+    }
+
+    /**
      * Returns a Closure which adds the "[KO]" prefix to an error message.
      *
      * @return Closure a Closure as follows: f(Error) -> Error
