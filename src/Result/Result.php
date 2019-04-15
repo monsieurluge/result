@@ -9,15 +9,6 @@ interface Result
 {
 
     /**
-     * [TODO else description]
-     *
-     * @param Action $action
-     *
-     * @return Result
-     */
-    public function else(Action $action): Result;
-
-    /**
      * Returns the result's value if it succeeded or the expression's return value
      *   if it is a failure. The failure's error will be provided to the expression.
      *

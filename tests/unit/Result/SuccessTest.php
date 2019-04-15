@@ -143,6 +143,23 @@ final class SuccessTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Success::else
+     */
+    public function testElseOnSuccessDoesNothing()
+    {
+        // GIVEN the successful result
+        $success = new Success(1234);
+
+        // WHEN the else message is sent
+        $result = $success
+            ->else($this->replaceErrorMessageWith('failure !!!!!'))
+            ->getValueOrExecOnFailure($this->returnErrorMessage());
+
+        // THEN the result's content has not been altered
+        $this->assertSame(1234, $result);
+    }
+
+    /**
      * Returns a Closure: f(Error) -> string
      *
      * @return Closure
@@ -150,6 +167,23 @@ final class SuccessTest extends TestCase
     private function returnErrorMessage(): Closure
     {
         return function(Error $error) { return $error->message(); };
+    }
+
+    /**
+     * Returns a Closure: f(Error) -> Action
+     *
+     * @param string $newMessage
+     *
+     * @return Action an action which is always a failure
+     */
+    private function replaceErrorMessageWith(string $newMessage): Action
+    {
+        return new CustomAction(function (Error $error) use ($newMessage) {
+            return new BaseError(
+                $error->code(),
+                $newMessage
+            );
+        });
     }
 
 }
