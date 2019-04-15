@@ -57,22 +57,16 @@ final class FailureTest extends TestCase
     {
         // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
-        // AND ...
-        $testSubject = new class () {
-            public $message = '';
-            public function updateMessage(string $content) { $this->message = sprintf('[KO] %s', $content); }
-        };
-        // AND ...
-        $updateMessageUsingError = function(Error $error) use ($testSubject) {
-            $testSubject->updateMessage($error->message());
-            return $error;
-        };
+        // AND a function which prepends " KO" to an error's code
+        $prependKoToErrorCode = function(Error $error) { return new BaseError($error->code() . ' KO', $error->message()); };
 
-        // WHEN the "mapOnFailure" message is sent
-        $failure->mapOnFailure($updateMessageUsingError);
+        // WHEN the "mapOnFailure" message is sent, and the error's code is extracted
+        $code = $failure
+            ->mapOnFailure($prependKoToErrorCode)
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('[KO] failure', $testSubject->message);
+        // THEN the error's code is as expected
+        $this->assertSame('err-1234 KO', $code);
     }
 
     /**
