@@ -18,14 +18,14 @@ final class FailureTest extends TestCase
      */
     public function testTheFailureErrorIsFetched()
     {
-        // GIVEN
-        $testSubject = new Failure(new BaseError('err-1234', 'failure'));
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
 
-        // WHEN
-        $result = $testSubject->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+        // WHEN the error's code is fetched
+        $code = $failure->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
 
-        // THEN
-        $this->assertSame('failure', $result);
+        // THEN the error's code is as expected
+        $this->assertSame('failure', $code);
     }
 
     /**
@@ -33,22 +33,21 @@ final class FailureTest extends TestCase
      */
     public function testMapDoesNotApply()
     {
-        // GIVEN
-        $testSubject = new class() {
-            private $value = 0;
-            public function incrementBy(int $step) { $this->value += $step; }
-            public function value() { return $this->value; }
-        };
-
-        $incrementBy100 = function() use ($testSubject) { $testSubject->incrementBy(100); };
-
+        // GIVEN a failed result
         $result = new Failure(new BaseError('err-1234', 'failure'));
+        // AND an object who responds to the "incrementBy" and "value" messages
+        $incrementable = new class () {
+            public $value = 0;
+            public function incrementBy(int $step) { $this->value += $step; }
+        };
+        // AND a function which helps to increment the "incrementable" object's value
+        $incrementBy100 = function() use ($incrementable) { $incrementable->incrementBy(100); };
 
-        // WHEN
+        // WHEN the "map" message is sent
         $result->map($incrementBy100);
 
-        // THEN
-        $this->assertSame(0, $testSubject->value());
+        // THEN the "incrementable" object's value has not been altered
+        $this->assertSame(0, $incrementable->value);
     }
 
     /**
@@ -56,25 +55,24 @@ final class FailureTest extends TestCase
      */
     public function testMapOnFailureIsCalledWithTheErrorObject()
     {
-        // GIVEN
-        $testSubject = new class() {
-            private $message = '';
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND ...
+        $testSubject = new class () {
+            public $message = '';
             public function updateMessage(string $content) { $this->message = sprintf('[KO] %s', $content); }
-            public function message() { return $this->message; }
         };
-
-        $updateErrorMessage = function(Error $error) use ($testSubject) {
+        // AND ...
+        $updateMessageUsingError = function(Error $error) use ($testSubject) {
             $testSubject->updateMessage($error->message());
             return $error;
         };
 
-        $failure = new Failure(new BaseError('err-1234', 'failure'));
-
-        // WHEN
-        $failure->mapOnFailure($updateErrorMessage);
+        // WHEN the "mapOnFailure" message is sent
+        $failure->mapOnFailure($updateMessageUsingError);
 
         // THEN
-        $this->assertSame('[KO] failure', $testSubject->message());
+        $this->assertSame('[KO] failure', $testSubject->message);
     }
 
     /**
