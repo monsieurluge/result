@@ -29,14 +29,22 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
+    public function else(Closure $doSomethingWithError): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return $this->value;
     }
 
     /**
-    * @inheritDoc
-    */
+     * @inheritDoc
+     */
     public function map(Closure $expression): Result
     {
         return new self(
@@ -45,16 +53,16 @@ final class Success implements Result
     }
 
     /**
-    * @inheritDoc
-    */
+     * @inheritDoc
+     */
     public function mapOnFailure(Closure $expression): Result
     {
         return $this;
     }
 
     /**
-    * @inheritDoc
-    */
+     * @inheritDoc
+     */
     public function then(Action $action): Result
     {
         return $action->process($this->value);
