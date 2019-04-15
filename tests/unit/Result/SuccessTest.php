@@ -23,7 +23,7 @@ final class SuccessTest extends TestCase
         $success = new Success('success');
 
         // WHEN the value is requested
-        $value = $success->getValueOrExecOnFailure($this->returnErrorMessage());
+        $value = $success->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value the one used to create the result object
         $this->assertSame('success', $value);
@@ -44,7 +44,7 @@ final class SuccessTest extends TestCase
         // AND the value is requested
         $value = $success
             ->map($toUppercase)
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the uppercase version of the original one
         $this->assertSame('SUCCESS', $value);
@@ -87,7 +87,7 @@ final class SuccessTest extends TestCase
         $value = $success
             ->map($toUpperCase)
             ->mapOnFailure(function() use ($counter) { $counter++; })
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the uppercase version of the original one
         $this->assertSame('SUCCESS', $value);
@@ -115,7 +115,7 @@ final class SuccessTest extends TestCase
         $result = $success
             ->mapOnFailure(function() use ($counter) { $counter++; })
             ->map($toUpperCase)
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the uppercase version of the original one
         $this->assertSame('SUCCESS', $result);
@@ -142,7 +142,7 @@ final class SuccessTest extends TestCase
         // AND its value is requested
         $value = $success
             ->then($incrementBy111)
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the starting one increased by 111
         $this->assertSame(666, $value);
@@ -164,7 +164,7 @@ final class SuccessTest extends TestCase
         // WHEN the else message is sent, and the value is fetched
         $result = $success
             ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the result's content has not been altered
         $this->assertSame(1234, $result);
@@ -173,13 +173,15 @@ final class SuccessTest extends TestCase
     }
 
     /**
-     * Returns a Closure: f(Error) -> string
+     * Returns a function which extracts the error's code.
      *
-     * @return Closure
+     * @return Closure the function as follows: f(Error) -> string
      */
-    private function returnErrorMessage(): Closure
+    private function extractErrorCode(): Closure
     {
-        return function(Error $error) { return $error->message(); };
+        return function (Error $error) {
+            return $error->code();
+        };
     }
 
 }
