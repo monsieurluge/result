@@ -25,7 +25,7 @@ final class SuccessTest extends TestCase
         // WHEN the value is requested
         $value = $success->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the value the one used to create the result object
+        // THEN the value is the one used to create the result object
         $this->assertSame('success', $value);
     }
 
