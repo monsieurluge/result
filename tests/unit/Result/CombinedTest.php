@@ -378,6 +378,34 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Combined::else
+     */
+    public function testSuccessesDoesNotTriggerTheElseMethod()
+    {
+        // GIVEN a success-success combination
+        $combined = new Combined(
+            new Success('test'),
+            new Success('ok')
+        );
+        // AND a class which is used to store a text
+        $storage = new class () {
+            public $text = 'nothing';
+            public function store (string $text) { $this->text = $text; }
+        };
+
+        // WHEN the else method is sent, and the value is fetched
+        $value = $combined
+            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
+            ->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the combined values have not been altered
+        $this->assertSame('test', $value->first());
+        $this->assertSame('ok', $value->second());
+        // AND the stored text has not been altered
+        $this->assertSame('nothing', $storage->text);
+    }
+
+    /**
      * Returns a Closure which adds the "[KO]" prefix to an error message.
      *
      * @return Closure a Closure as follows: f(Error) -> Error
@@ -420,6 +448,18 @@ final class CombinedTest extends TestCase
     private function concatTheStringValues(): Closure
     {
         return function (CombinedValues $values) { return sprintf('%s %s', $values->first(), $values->second()); };
+    }
+
+    /**
+     * Returns a function which extracts the error's code.
+     *
+     * @return Closure the function as follows: f(Error) -> string
+     */
+    private function extractErrorCode(): Closure
+    {
+        return function (Error $error) {
+            return $error->code();
+        };
     }
 
     /**

@@ -36,7 +36,7 @@ final class Combined implements Result
      */
     public function else(Closure $doSomethingWithError): Result
     {
-        throw new \Exception("Error Processing Request", 1);
+        return $this;
     }
 
     /**
