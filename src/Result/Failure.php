@@ -32,9 +32,9 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
-    public function else(Closure $expression): Result
+    public function else(Closure $doSomethingWithError): Result
     {
-        ($expression)($this->error);
+        ($doSomethingWithError)($this->error);
 
         return $this;
     }

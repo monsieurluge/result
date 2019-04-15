@@ -29,7 +29,7 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function else(): Result
+    public function else(Closure $doSomethingWithError): Result
     {
         return $this;
     }

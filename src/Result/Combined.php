@@ -33,6 +33,14 @@ final class Combined implements Result
 
     /**
      * @inheritDoc
+     */
+    public function else(Closure $doSomethingWithError): Result
+    {
+        throw new \Exception("Error Processing Request", 1);
+    }
+
+    /**
+     * @inheritDoc
      * @return mixed either CombinedValues or Closure's result
      */
     public function getValueOrExecOnFailure(Closure $expression)
