@@ -149,14 +149,21 @@ final class SuccessTest extends TestCase
     {
         // GIVEN the successful result
         $success = new Success(1234);
+        // AND a class which is used to store a text
+        $storage = new class () {
+            public $text = 'nothing';
+            public function store (string $text) { $this->text = $text; }
+        };
 
-        // WHEN the else message is sent
+        // WHEN the else message is sent, and the value is fetched
         $result = $success
-            ->else($this->replaceErrorMessageWith('failure !!!!!'))
+            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
             ->getValueOrExecOnFailure($this->returnErrorMessage());
 
         // THEN the result's content has not been altered
         $this->assertSame(1234, $result);
+        // AND the storage's text has not been altered
+        $this->assertSame('nothing', $storage->text);
     }
 
     /**
