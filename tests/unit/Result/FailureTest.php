@@ -2,6 +2,7 @@
 
 namespace tests\unit\Result;
 
+use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Action\CustomAction;
@@ -165,6 +166,42 @@ final class FailureTest extends TestCase
 
         // THEN
         $this->assertSame(0, $testSubject->value());
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::else
+     */
+    public function testElseIsTriggered()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND a class which is used to store a text
+        $storage = new class () {
+            public $text = 'nothing';
+            public function store (string $text) { $this->text = $text; }
+        };
+
+        // WHEN the else message is sent, and the error's code is fetched
+        $code = $failure
+            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
+            ->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error's code has not been altered
+        $this->assertSame('err-1234', $code);
+        // AND the stored text is as expected
+        $this->assertSame('err-1234', $storage->text);
+    }
+
+    /**
+     * Returns a function which extracts the error's code.
+     *
+     * @return Closure the function as follows: f(Error) -> string
+     */
+    private function extractErrorCode(): Closure
+    {
+        return function (Error $error) {
+            return $error->code();
+        };
     }
 
 }

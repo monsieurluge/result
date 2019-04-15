@@ -33,6 +33,16 @@ final class Combined implements Result
 
     /**
      * @inheritDoc
+     */
+    public function else(Closure $doSomethingWithError): Result
+    {
+        $this->and()->else($doSomethingWithError);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
      * @return mixed either CombinedValues or Closure's result
      */
     public function getValueOrExecOnFailure(Closure $expression)
