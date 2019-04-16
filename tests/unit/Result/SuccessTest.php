@@ -149,6 +149,26 @@ final class SuccessTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Success::thenTemp
+     */
+    public function testSuccessTriggersTheThenTempAction()
+    {
+        // GIVEN a successful result
+        $success = new Success('foo bar');
+        // AND a "counter" object
+        $counter = new class () {
+            public $count = 0;
+            public function increment() { $this->count++; }
+        };
+
+        // WHEN an action is provided
+        $success->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+
+        // THEN the counter object has been called once
+        $this->assertSame(1, $counter->count);
+    }
+
+    /**
      * @covers monsieurluge\Result\Result\Success::else
      */
     public function testElseOnSuccessDoesNothing()
