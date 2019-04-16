@@ -64,4 +64,6 @@ interface Result
      */
     public function then(Action $action): Result;
 
+    public function thenTemp(Closure $action): Result;
+
 }

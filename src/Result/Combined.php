@@ -74,6 +74,11 @@ final class Combined implements Result
         return $this->and()->then($action);
     }
 
+    public function thenTemp(Closure $action): Result
+    {
+        return $this->and()->thenTemp($action);
+    }
+
     /**
      * Returns the combined values or the first Error encountered.
      * @codeCoverageIgnore
