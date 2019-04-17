@@ -10,21 +10,21 @@ The code also becomes more declarative and object oriented.
 
 The Error object helps to identify the error thrown in order to trace it efficiently.
 
-Example, using a `UserNotFound` error thrown when the user was not found in the storage:
+Example, using a `ClientNotFound` error thrown when the client does not exist in the storage:
 
 ```php
 <?php
 
-namespace App\Error;
+namespace App\Error\Storage;
 
-use App\Domain\UserId;
+use App\Domain\ClientId;
 use monsieurluge\Result\Error\Error;
 
-final class UserNotFound implements Error
+final class ClientNotFound implements Error
 {
     private $uniqueId;
 
-    public function __construct(UserId $uniqueId)
+    public function __construct(ClientId $uniqueId)
     {
         $this->uniqueId = $uniqueId;
     }
@@ -37,7 +37,7 @@ final class UserNotFound implements Error
     public function message(): string
     {
         return sprintf(
-            'the user "%s" does not exist',
+            'the client identified by "%s" does not exist',
             $this->uniqueId->value()
         );
     }
@@ -47,34 +47,35 @@ final class UserNotFound implements Error
 ```php
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Doctrine; // or any storage type needed
 
-use App\Domain\UserId;
-use App\Repository\UserRepository;
+use App\Domain\ClientId;
+use App\Error\Storage\ClientNotFound;
+use App\Repository\ClientRepository as ClientRepositoryInterface;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Failure;
 use monsieurluge\Result\Result\Success;
 
-final class BaseUserRepository implements UserRepository
+final class ClientRepository implements ClientRepositoryInterface
 {
     [...] // variables declarations, constructor, etc
 
-    public function user(UserId $name): Result // Result<User>
+    public function client(ClientId $identifier): Result // Result<User>
     {
-        $user = $this->storage->getUserByName($name->value());
+        $client = $this->storage->clientById($identifier->value());
 
-        return is_null($user)
+        return is_null($client)
             ? new Failure(
-                new UserNotFound($name)
+                new ClientNotFound($identifier)
             )
-            : new Success($this->userFactory->fromDbModel($user));
+            : new Success($this->clientFactory->fromDbModel($client));
     }
 }
 ```
 
 ### Result
 
-The Result objects helps to write declarative code and to throw away the usuals `if (is_null($object))` and `try catch` control structures.
+The Result objects help to write declarative code and to throw away the usuals `if (is_null($object))` and `try catch` control structures.
 
 So, the Exceptions are only used for what they are originally intended for: throw an alert because of a exceptional situation that cannot be handled normally.
 
@@ -91,12 +92,12 @@ final class Agent
     {
         return $this->callCenter
             ->call(new PhoneNumber('0123456789')) // Result<Person>
-            ->then(new PresentProduct($newSuperProduct))
-            ->then(new Sale($newSuperProduct))
-            ->map(function (Person $client) use ($newSuperProduct) {
-                return $this->createBill($client, $newSuperProduct); // Bill
+            ->then(new PresentProduct($newSuperProduct)) // Result<Person>
+            ->then(new Sale($newSuperProduct)) // Result<Person>
+            ->map(function (Person $client) use ($newSuperProduct) { // Result<Bill>
+                return $this->createBill($client, $newSuperProduct);
             })
-            ->else(new SaleRefused($this));
+            ->else(new SaleRefused($this)); // Failure
     }
 }
 ```
@@ -108,53 +109,61 @@ final class Agent
 ```php
 <?php
 
-use monsieurluge\Result\Action\CustomAction;
+namespace App\Domain;
+
+use App\Services\Output\Output;
+
+interface Product
+{
+    public function print(Output $output): void;
+}
+```
+
+```php
+<?php
+
+namespace App\Repository;
+
+use monsieurluge\Result\Result\Result;
+use App\Domain\Product as DomainProduct;
+
+interface Product
+{
+    public function productById(int $identifier): Result; // Result<DomainProduct>
+}
+```
+
+```php
+<?php
+
+namespace App\Http\Controller\API;
+
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
 use App\Domain\User;
-use App\Repository\UserRepository;
+use App\Repository\Product as ProductRepository;
 use Symfony\Component\HttpFoundation\Response;
 
-interface User
-{
-    public function id(): string;
-
-    public function fullname(): string;
-}
-
-class UserController
+class ProductCardInformations
 {
     private $repository;
+    private $view;
 
-    public function __construct(UserRepository $repository)
+    public function __construct(ProductRepository $repository, ProductCard $view)
     {
         $this->repository = $repository;
+        $this->view       = $view;
     }
 
-    public function index()
+    public function process(Request $request, Response $response): void
     {
-        $userToResponse = function(User $user) { // f(User):Response
-            return new Success(
-                new Response(
-                    [ 'id' => $user->id(), 'name' => $user->fullname() ],
-                    Response::HTTP_OK
-                )
-            );
-        };
+        $this->repository
+            ->productById($request->productId())
+            ->then(function (Product $product) { $product->print($this->view); })
 
-        $createUserNotFoundResponse = function(Error $error) {
-            return new Response(
-                sprintf('user not found (error #%s)', $error->code()),
-                Response::HTTP_NOT_FOUND
-            );
-        };
-
-        return $userRepository
-            ->findByName('Homer Simpson')
-            ->map($userToResponse)
-            ->getValueOrExecOnFailure($createUserNotFoundResponse);
+            // todo
     }
 }
 ```
