@@ -64,6 +64,17 @@ interface Result
      */
     public function then(Action $action): Result;
 
+    /**
+     * Calls the action on the successful result's value.
+     * The action MUST return a Result.
+     * The action SHOULD return a Result&lt;T&gt;
+     *
+     * <code>action: &lt;T&gt; -> Result&lt;T&gt;</code>
+     *
+     * @param Closure $action
+     *
+     * @return Result a Result&lt;T&gt;
+     */
     public function thenTemp(Closure $action): Result;
 
 }
