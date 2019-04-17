@@ -6,36 +6,6 @@ The code also becomes more declarative and object oriented.
 
 ## Objects types
 
-### Action
-
-The Action objects allows to interact with the desired result's content without changing its type.
-
-Example, using a `SendEmail` action based on a `Result<User>`:
-
-```php
-<?php
-
-namespace App\Action;
-
-use monsieurluge\Result\Action\Action;
-
-final class SendEmail implements Action
-{
-    private $mailer; // mail service
-    private $template; // template builder
-
-    [...] // constructor
-
-    public function process($target): void
-    {
-        $mailer->send(
-            [ $target->email()->value() ],
-            $template->content([ 'name' => $target->fullName() ])
-        );
-    }
-}
-```
-
 ### Error
 
 The Error object helps to identify the error thrown in order to trace it efficiently.
