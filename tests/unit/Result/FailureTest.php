@@ -15,131 +15,60 @@ final class FailureTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
      */
-    public function testTheFailureErrorIsFetched()
+    public function testGetTheError()
     {
         // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
 
         // WHEN the error's code is fetched
-        $code = $failure->getValueOrExecOnFailure(function(Error $error) { return $error->message(); });
+        $code = $failure->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the error's code is as expected
-        $this->assertSame('failure', $code);
+        // THEN the code is as expected
+        $this->assertSame('err-1234', $code);
     }
 
     /**
      * @covers monsieurluge\Result\Result\Failure::map
+     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
      */
-    public function testMapDoesNotApply()
-    {
-        // GIVEN a failed result
-        $result = new Failure(new BaseError('err-1234', 'failure'));
-        // AND an object who responds to the "incrementBy" and "value" messages
-        $incrementable = new class () {
-            public $value = 0;
-            public function incrementBy(int $step) { $this->value += $step; }
-        };
-        // AND a function which helps to increment the "incrementable" object's value
-        $incrementBy100 = function() use ($incrementable) { $incrementable->incrementBy(100); };
-
-        // WHEN the "map" message is sent
-        $result->map($incrementBy100);
-
-        // THEN the "incrementable" object's value has not been altered
-        $this->assertSame(0, $incrementable->value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Failure::mapOnFailure
-     */
-    public function testMapOnFailureIsCalledWithTheErrorObject()
+    public function testMapDoesNothing()
     {
         // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
-        // AND a function which prepends " KO" to an error's code
-        $prependKoToErrorCode = function(Error $error) { return new BaseError($error->code() . ' KO', $error->message()); };
 
-        // WHEN the "mapOnFailure" message is sent, and the error's code is extracted
+        // WHEN a "to uppercase" function is provided and mapped on the result's success
+        // AND the code is requested
         $code = $failure
-            ->mapOnFailure($prependKoToErrorCode)
+            ->map($this->toUppercase())
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the error's code is as expected
-        $this->assertSame('err-1234 KO', $code);
+        // THEN the code is as expected
+        $this->assertSame('err-1234', $code);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Failure::map
      * @covers monsieurluge\Result\Result\Failure::mapOnFailure
+     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
      */
-    public function testMapFollowedByMapOnFailureCombinations()
+    public function testMapOnFailureChangesTheError()
     {
-        // GIVEN
-        $testSubject = new class() {
-            private $message = '---';
-            private $count = 0;
-            public function updateMessage(Error $error) {
-                $this->message = sprintf('%s #%s', $error->message(), $error->code());
-            }
-            public function incrementByOne() { $this->count++; }
-            public function message() { return sprintf('[KO] %s, count = %s', $this->message, $this->count); }
-        };
-
-        $incrementCounter = function() use ($testSubject) { $testSubject->incrementByOne(); };
-
-        $updateMessageUsingErrorMessage = function(Error $error) use ($testSubject) {
-            $testSubject->updateMessage($error);
-            return $error;
-        };
-
+        // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
 
-        // WHEN
-        $failure
-            ->map($incrementCounter)
-            ->mapOnFailure($updateMessageUsingErrorMessage);
+        // WHEN a "replace error's code" function is provided and mapped on the result's failure
+        // AND the value is requested
+        $code = $failure
+            ->mapOnFailure($this->replaceErrorCodeWith('err-666'))
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('[KO] failure #err-1234, count = 0', $testSubject->message());
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Failure::map
-     * @covers monsieurluge\Result\Result\Failure::mapOnFailure
-     */
-    public function testMapOnFailureFollowedByMapCombinations()
-    {
-        // GIVEN
-        $testSubject = new class() {
-            private $message = '---';
-            private $count = 0;
-            public function updateMessage(string $newMessage) { $this->message = $newMessage; }
-            public function incrementByOne() { $this->count++; }
-            public function message() { return sprintf('[KO] %s, count = %s', $this->message, $this->count); }
-        };
-
-        $incrementCounter = function() use ($testSubject) { $testSubject->incrementByOne(); };
-
-        $updateMessageUsingErrorMessage = function(Error $error) use ($testSubject) {
-            $testSubject->updateMessage($error->message());
-            return $error;
-        };
-
-        $failure = new Failure(new BaseError('err-1234', 'failure'));
-
-        // WHEN
-        $failure
-            ->mapOnFailure($updateMessageUsingErrorMessage)
-            ->map($incrementCounter);
-
-        // THEN
-        $this->assertSame('[KO] failure, count = 0', $testSubject->message());
+        // THEN the code is as expected
+        $this->assertSame('err-666', $code);
     }
 
     /**
      * @covers monsieurluge\Result\Result\Failure::then
      */
-    public function testFailureDoesNotTriggerTheThenAction()
+    public function testThenIsNotTriggered()
     {
         // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
@@ -160,21 +89,14 @@ final class FailureTest extends TestCase
     {
         // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
-        // AND a class which is used to store a text
-        $storage = new class () {
-            public $text = 'nothing';
-            public function store (string $text) { $this->text = $text; }
-        };
+        // AND a "counter" object
+        $counter = $this->createCounter();
 
-        // WHEN the else message is sent, and the error's code is fetched
-        $code = $failure
-            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+        // WHEN an action is provided
+        $failure->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
-        // THEN the error's code has not been altered
-        $this->assertSame('err-1234', $code);
-        // AND the stored text is as expected
-        $this->assertSame('err-1234', $storage->text);
+        // THEN the counter object has been called once
+        $this->assertSame(1, $counter->total());
     }
 
     /**
@@ -186,7 +108,8 @@ final class FailureTest extends TestCase
      */
     private function createCounter(): object
     {
-        return new class () {
+        return new class ()
+        {
             private $count = 0;
             public function increment() { $this->count++; }
             public function total() { return $this->count; }
@@ -196,12 +119,41 @@ final class FailureTest extends TestCase
     /**
      * Returns a function which extracts the error's code.
      *
-     * @return Closure the function as follows: f(Error) -> string
+     * @return Closure the function as follows: Error -> string
      */
     private function extractErrorCode(): Closure
     {
-        return function (Error $error) {
+        return function (Error $error): string
+        {
             return $error->code();
+        };
+    }
+
+    /**
+     * Returns a function which takes a text and returns its uppercase version.
+     *
+     * @return Closure the function as follows: string -> string
+     */
+    private function toUppercase(): Closure
+    {
+        return function (string $text): string
+        {
+            return strtoupper($text);
+        };
+    }
+
+    /**
+     * Returns a function which replaces an error's code and returns a new Error.
+     *
+     * @param string $replacement
+     *
+     * @return Closure the function as follows: Error -> Error
+     */
+    private function replaceErrorCodeWith(string $replacement): Closure
+    {
+        return function (Error $origin) use ($replacement): Error
+        {
+            return new BaseError($replacement, $origin->message());
         };
     }
 
