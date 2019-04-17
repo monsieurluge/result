@@ -59,7 +59,7 @@ final class Success implements Result
         return $this;
     }
 
-    public function thenTemp(Closure $action): Result
+    public function then(Closure $action): Result
     {
         return ($action)($this->value);
     }

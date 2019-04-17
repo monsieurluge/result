@@ -124,9 +124,9 @@ final class SuccessTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Success::thenTemp
+     * @covers monsieurluge\Result\Result\Success::then
      */
-    public function testSuccessTriggersTheThenTempAction()
+    public function testSuccessTriggersTheThenAction()
     {
         // GIVEN a successful result
         $success = new Success('foo bar');
@@ -134,7 +134,7 @@ final class SuccessTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $success->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+        $success->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
         $this->assertSame(1, $counter->total());

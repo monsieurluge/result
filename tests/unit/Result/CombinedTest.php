@@ -286,9 +286,9 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::thenTemp
+     * @covers monsieurluge\Result\Result\Combined::then
      */
-    public function testSuccessesTriggersTheThenTempAction()
+    public function testSuccessesTriggersTheThenAction()
     {
         // GIVEN two combined successes
         $combined = new Combined(
@@ -299,16 +299,16 @@ final class CombinedTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+        $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
         $this->assertSame(1, $counter->total());
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::thenTemp
+     * @covers monsieurluge\Result\Result\Combined::then
      */
-    public function testSuccessAndFailureDoesNotTriggerTheThenTempAction()
+    public function testSuccessAndFailureDoesNotTriggerTheThenAction()
     {
         // GIVEN a success and failure combination
         $combined = new Combined(
@@ -321,16 +321,16 @@ final class CombinedTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+        $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
         $this->assertSame(0, $counter->total());
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::thenTemp
+     * @covers monsieurluge\Result\Result\Combined::then
      */
-    public function testFailureAndSuccessDoesNotTriggerTheThenTempAction()
+    public function testFailureAndSuccessDoesNotTriggerTheThenAction()
     {
         // GIVEN a failure and success combination
         $combined = new Combined(
@@ -343,16 +343,16 @@ final class CombinedTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+        $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
         $this->assertSame(0, $counter->total());
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::thenTemp
+     * @covers monsieurluge\Result\Result\Combined::then
      */
-    public function testFailuresDoesNotTriggerTheThenTempAction()
+    public function testFailuresDoesNotTriggerTheThenAction()
     {
         // GIVEN a failure and success combination
         $combined = new Combined(
@@ -367,7 +367,7 @@ final class CombinedTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+        $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
         $this->assertSame(0, $counter->total());

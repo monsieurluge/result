@@ -138,9 +138,9 @@ final class FailureTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Failure::thenTemp
+     * @covers monsieurluge\Result\Result\Failure::then
      */
-    public function testFailureDoesNotTriggerTheThenTempAction()
+    public function testFailureDoesNotTriggerTheThenAction()
     {
         // GIVEN a failed result
         $failure = new Failure(new BaseError('err-1234', 'failure'));
@@ -148,7 +148,7 @@ final class FailureTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $failure->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
+        $failure->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has not been called
         $this->assertSame(0, $counter->total());

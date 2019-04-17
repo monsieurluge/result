@@ -69,9 +69,9 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
-    public function thenTemp(Closure $action): Result
+    public function then(Closure $action): Result
     {
-        return $this->and()->thenTemp($action);
+        return $this->and()->then($action);
     }
 
     /**
@@ -82,7 +82,7 @@ final class Combined implements Result
      */
     private function and(): Result
     {
-        return $this->firstResult->thenTemp($this->combineWith($this->secondResult, $this->combine()));
+        return $this->firstResult->then($this->combineWith($this->secondResult, $this->combine()));
     }
 
     /**

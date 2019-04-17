@@ -66,7 +66,7 @@ final class Failure implements Result
         );
     }
 
-    public function thenTemp(Closure $action): Result
+    public function then(Closure $action): Result
     {
         return $this;
     }
