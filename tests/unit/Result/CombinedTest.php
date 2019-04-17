@@ -5,7 +5,6 @@ namespace tests\unit\Result;
 use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\BaseCombinedValues;
 use monsieurluge\Result\Result\Combined;
 use monsieurluge\Result\Result\CombinedValues;
 use monsieurluge\Result\Result\Failure;
@@ -19,29 +18,28 @@ final class CombinedTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testGetValueOfSuccessesReturnsCombinedValues()
+    public function testGetTheValueOfSuccessesReturnsCombinedValues()
     {
-        // GIVEN
+        // GIVEN combined successes
         $combined = new Combined(
             new Success('test'),
             new Success('ok')
         );
 
-        // WHEN
-        $testSubject = $combined->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN the value is requested
+        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('test', $testSubject->first());
-
-        $this->assertSame('ok', $testSubject->second());
+        // THEN the value is the combined success values
+        $this->assertSame('test', $value->first());
+        $this->assertSame('ok', $value->second());
     }
 
     /**
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testGetValueOfSuccessAndFailureReturnsTheError()
+    public function testGetTheValueOfSuccessAndFailureReturnsTheError()
     {
-        // GIVEN
+        // GIVEN combined success and failure
         $combined = new Combined(
             new Success('test'),
             new Failure(
@@ -49,19 +47,19 @@ final class CombinedTest extends TestCase
             )
         );
 
-        // WHEN
-        $testSubject = $combined->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN the value is requested
+        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('failure', $testSubject);
+        // THEN the value is the failure error's code
+        $this->assertSame('err-1234', $value);
     }
 
     /**
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testGetValueOfFailureAndSuccessReturnsTheError()
+    public function testGetTheValueOfFailureAndSuccessReturnsTheError()
     {
-        // GIVEN
+        // GIVEN combined failure and success
         $combined = new Combined(
             new Failure(
                 new BaseError('err-1234', 'failure')
@@ -69,11 +67,11 @@ final class CombinedTest extends TestCase
             new Success('test')
         );
 
-        // WHEN
-        $testSubject = $combined->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN the value is requested
+        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('failure', $testSubject);
+        // THEN the value is the failure error's code
+        $this->assertSame('err-1234', $value);
     }
 
     /**
@@ -81,51 +79,52 @@ final class CombinedTest extends TestCase
      */
     public function testGetValueOfFailuresReturnsTheFirstError()
     {
-        // GIVEN
+        // GIVEN combined failures
         $combined = new Combined(
             new Failure(
-                new BaseError('err-1234', 'failure')
+                new BaseError('err-1234', 'failure one')
             ),
             new Failure(
-                new BaseError('err-4567', 'error')
+                new BaseError('err-4567', 'failure two')
             )
         );
 
-        // WHEN
-        $testSubject = $combined->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN the value is requested
+        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('failure', $testSubject);
+        // THEN the value is the first failure error's code
+        $this->assertSame('err-1234', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapSuccessesReturnsTheMappedResult()
+    public function testMapOnSuccessesChangeTheResultValue()
     {
-        // GIVEN
+        // GIVEN combined successes
         $combined = new Combined(
             new Success('test'),
             new Success('ok')
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->map($this->concatTheStringValues())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "concatenate" function is provided and mapped on the results
+        // AND the value is requested
+        $value = $combined
+            ->map($this->concatenate())
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('test ok', $testSubject);
+        // THEN the value is the concatenation of the successes values
+        $this->assertSame('test ok', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapSuccessAndFailureReturnsFailure()
+    public function testMapOnSuccessAndFailureDitNotChangeTheResultValue()
     {
-        // GIVEN
+        // GIVEN combined success and failure
         $combined = new Combined(
             new Success('test'),
             new Failure(
@@ -133,22 +132,23 @@ final class CombinedTest extends TestCase
             )
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->map($this->concatTheStringValues())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "concatenate" function is provided and mapped on the results
+        // AND the value is requested
+        $value = $combined
+            ->map($this->concatenate())
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('failure', $testSubject);
+        // THEN the value is the failure error's code
+        $this->assertSame('err-1234', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::map
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapFailureAndSuccessReturnsFailure()
+    public function testMapOnFailureAndSuccessDitNotChangeTheResultValue()
     {
-        // GIVEN
+        // GIVEN combined failure and success
         $combined = new Combined(
             new Failure(
                 new BaseError('err-1234', 'failure')
@@ -156,13 +156,14 @@ final class CombinedTest extends TestCase
             new Success('test')
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->map($this->concatTheStringValues())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "concatenate" function is provided and mapped on the results
+        // AND the value is requested
+        $value = $combined
+            ->map($this->concatenate())
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('failure', $testSubject);
+        // THEN the value is the failure error's code
+        $this->assertSame('err-1234', $value);
     }
 
     /**
@@ -171,55 +172,56 @@ final class CombinedTest extends TestCase
      */
     public function testMapFailuresReturnsTheFirstFailure()
     {
-        // GIVEN
+        // GIVEN combined failures
         $combined = new Combined(
             new Failure(
-                new BaseError('err-1234', 'failure')
+                new BaseError('err-1234', 'failure one')
             ),
             new Failure(
-                new BaseError('err-4567', 'error')
+                new BaseError('err-5678', 'failure two')
             )
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->map($this->concatTheStringValues())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "concatenate" function is provided and mapped on the results
+        // AND the value is requested
+        $value = $combined
+            ->map($this->concatenate())
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertSame('failure', $testSubject);
+        // THEN the value is the first failure error's code
+        $this->assertSame('err-1234', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
     public function testMapOnFailureWithSuccessesDoesNothing()
     {
-        // GIVEN
+        // GIVEN combined successes
         $combined = new Combined(
             new Success('test'),
             new Success('ok')
         );
 
-        $expexted = new BaseCombinedValues('test', 'ok');
+        // WHEN a "append to error's code" function is provided and mapped on the result's failure
+        // AND the value is requested
+        $value = $combined
+            ->mapOnFailure($this->appendToErrorCode(' KO'))
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // WHEN
-        $testSubject = $combined
-            ->mapOnFailure($this->addPrefixToErrorMessage())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
-
-        // THEN
-        $this->assertEquals($expexted, $testSubject);
+        // THEN the value is the combined success values
+        $this->assertSame('test', $value->first());
+        $this->assertSame('ok', $value->second());
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapOnFailureWithSuccessAndFailureMapsTheError()
+    public function testMapOnFailureWithSuccessAndFailureChangesTheError()
     {
-        // GIVEN
+        // GIVEN combined success and failure
         $combined = new Combined(
             new Success('test'),
             new Failure(
@@ -227,22 +229,23 @@ final class CombinedTest extends TestCase
             )
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->mapOnFailure($this->addPrefixToErrorMessage())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "append to error's code" function is provided and mapped on the result's failure
+        // AND the value is requested
+        $value = $combined
+            ->mapOnFailure($this->appendToErrorCode(' KO'))
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertEquals('[KO] failure', $testSubject);
+        // THEN the value is the extended error's code
+        $this->assertSame('err-1234 KO', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapOnFailureWithFailureAndSuccessMapsTheError()
+    public function testMapOnFailureWithFailureAndSuccessChangesTheError()
     {
-        // GIVEN
+        // GIVEN combined failure and success
         $combined = new Combined(
             new Failure(
                 new BaseError('err-1234', 'failure')
@@ -250,38 +253,40 @@ final class CombinedTest extends TestCase
             new Success('test')
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->mapOnFailure($this->addPrefixToErrorMessage())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "append to error's code" function is provided and mapped on the result's failure
+        // AND the value is requested
+        $value = $combined
+            ->mapOnFailure($this->appendToErrorCode(' KO'))
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertEquals('[KO] failure', $testSubject);
+        // THEN the value is the extended error's code
+        $this->assertSame('err-1234 KO', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      * @covers monsieurluge\Result\Result\Combined::mapOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapOnFailureWithFailuresMapsTheFirstError()
+    public function testMapOnFailureWithFailuresChangesTheFirstError()
     {
-        // GIVEN
+        // GIVEN combined failures
         $combined = new Combined(
             new Failure(
-                new BaseError('err-1234', 'failure')
+                new BaseError('err-1234', 'failure one')
             ),
             new Failure(
-                new BaseError('err-4567', 'error')
+                new BaseError('err-5678', 'failure two')
             )
         );
 
-        // WHEN
-        $testSubject = $combined
-            ->mapOnFailure($this->addPrefixToErrorMessage())
-            ->getValueOrExecOnFailure($this->returnErrorMessage());
+        // WHEN a "append to error's code" function is provided and mapped on the result's failure
+        // AND the value is requested
+        $value = $combined
+            ->mapOnFailure($this->appendToErrorCode(' KO'))
+            ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN
-        $this->assertEquals('[KO] failure', $testSubject);
+        // THEN the value is the extended first error's code
+        $this->assertSame('err-1234 KO', $value);
     }
 
     /**
@@ -377,27 +382,19 @@ final class CombinedTest extends TestCase
      */
     public function testSuccessesDoesNotTriggerTheElseMethod()
     {
-        // GIVEN a success-success combination
+        // GIVEN a successes combination
         $combined = new Combined(
             new Success('test'),
             new Success('ok')
         );
-        // AND a class which is used to store a text
-        $storage = new class () {
-            public $text = 'nothing';
-            public function store (string $text) { $this->text = $text; }
-        };
+        // AND a "counter" object
+        $counter = $this->createCounter();
 
-        // WHEN the else method is sent, and the value is fetched
-        $value = $combined
-            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+        // WHEN an action is provided
+        $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
-        // THEN the combined values have not been altered
-        $this->assertSame('test', $value->first());
-        $this->assertSame('ok', $value->second());
-        // AND the stored text has not been altered
-        $this->assertSame('nothing', $storage->text);
+        // THEN the counter object has not been called
+        $this->assertSame(0, $counter->total());
     }
 
     /**
@@ -405,28 +402,21 @@ final class CombinedTest extends TestCase
      */
     public function testSuccessAndFailureTriggersTheElseMethod()
     {
-        // GIVEN a success-success combination
+        // GIVEN a success and failure combination
         $combined = new Combined(
             new Success('test'),
             new Failure(
                 new BaseError('err-1234', 'failure')
             )
         );
-        // AND a class which is used to store a text
-        $storage = new class () {
-            public $text = 'nothing';
-            public function store (string $text) { $this->text = $text; }
-        };
+        // AND a "counter" object
+        $counter = $this->createCounter();
 
-        // WHEN the else method is sent, and the error's code is fetched
-        $code = $combined
-            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+        // WHEN an action is provided
+        $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
-        // THEN the error's code was fetched
-        $this->assertSame('err-1234', $code);
-        // AND the stored text was updated using the error's code
-        $this->assertSame('err-1234', $storage->text);
+        // THEN the counter object has been called once
+        $this->assertSame(1, $counter->total());
     }
 
     /**
@@ -434,85 +424,62 @@ final class CombinedTest extends TestCase
      */
     public function testFailureAndSuccessTriggersTheElseMethod()
     {
-        // GIVEN a success-success combination
+        // GIVEN a failure and success combination
         $combined = new Combined(
             new Failure(
                 new BaseError('err-1234', 'failure')
             ),
             new Success('test')
         );
-        // AND a class which is used to store a text
-        $storage = new class () {
-            public $text = 'nothing';
-            public function store (string $text) { $this->text = $text; }
-        };
+        // AND a "counter" object
+        $counter = $this->createCounter();
 
-        // WHEN the else method is sent, and the error's code is fetched
-        $code = $combined
-            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+        // WHEN an action is provided
+        $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
-        // THEN the error's code was fetched
-        $this->assertSame('err-1234', $code);
-        // AND the stored text was updated using the error's code
-        $this->assertSame('err-1234', $storage->text);
+        // THEN the counter object has been called once
+        $this->assertSame(1, $counter->total());
     }
 
     /**
      * @covers monsieurluge\Result\Result\Combined::else
      */
-    public function testFailuresTriggersTheElseMethodProvidingTheFirstError()
+    public function testFailuresTriggersTheElseMethod()
     {
-        // GIVEN a success-success combination
+        // GIVEN a failures combination
         $combined = new Combined(
             new Failure(
-                new BaseError('err-1234', 'failure')
+                new BaseError('err-1234', 'failure one')
             ),
             new Failure(
-                new BaseError('err-5678', 'error')
+                new BaseError('err-5678', 'failure two')
             )
         );
-        // AND a class which is used to store a text
-        $storage = new class () {
-            public $text = 'nothing';
-            public function store (string $text) { $this->text = $text; }
-        };
+        // AND a "counter" object
+        $counter = $this->createCounter();
 
-        // WHEN the else method is sent, and the error's code is fetched
-        $code = $combined
-            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+        // WHEN an action is provided
+        $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
-        // THEN the error's code was fetched
-        $this->assertSame('err-1234', $code);
-        // AND the stored text was updated using the error's code
-        $this->assertSame('err-1234', $storage->text);
+        // THEN the counter object has been called once
+        $this->assertSame(1, $counter->total());
     }
 
     /**
-     * Returns a Closure which adds the "[KO]" prefix to an error message.
+     * Returns a function which concatenates the combined texts.
      *
-     * @return Closure a Closure as follows: f(Error) -> Error
+     * @return Closure the function as follows: CombinedValues -> string
      */
-    private function addPrefixToErrorMessage(): Closure
+    private function concatenate(): Closure
     {
-        return function (Error $error) {
-            return new BaseError(
-                $error->code(),
-                sprintf('[KO] %s', $error->message())
+        return function (CombinedValues $texts): string
+        {
+            return sprintf(
+                '%s %s',
+                $texts->first(),
+                $texts->second()
             );
         };
-    }
-
-    /**
-     * Returns a function which concatenate two string values.
-     *   ex: returns "foo bar" when the first value = "foo" and the second = "bar"
-     *
-     * @return Closure a Closure as follows: f(CombinedValues) -> string
-     */
-    private function concatTheStringValues(): Closure
-    {
-        return function (CombinedValues $values) { return sprintf('%s %s', $values->first(), $values->second()); };
     }
 
     /**
@@ -544,12 +511,20 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * Returns a Closure: f(Error) -> string
+     * Returns a function which appends a suffix to an error's code and returns a new Error.
      *
-     * @return Closure
+     * @param string $suffix
+     *
+     * @return Closure the function as follows: Error -> Error
      */
-    private function returnErrorMessage(): Closure
+    private function appendToErrorCode(string $suffix): Closure
     {
-        return function (Error $error) { return $error->message(); };
+        return function (Error $origin) use ($suffix): Error
+        {
+            return new BaseError(
+                $origin->code() . $suffix,
+                $origin->message()
+            );
+        };
     }
 }
