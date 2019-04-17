@@ -3,8 +3,6 @@
 namespace tests\unit\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
-use monsieurluge\Result\Action\CustomAction;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Result;
@@ -20,13 +18,13 @@ final class SuccessTest extends TestCase
     public function testGetTheValue()
     {
         // GIVEN a successful result
-        $success = new Success('success');
+        $success = new Success('foo bar');
 
         // WHEN the value is requested
         $value = $success->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the one used to create the result object
-        $this->assertSame('success', $value);
+        $this->assertSame('foo bar', $value);
     }
 
     /**
@@ -36,151 +34,126 @@ final class SuccessTest extends TestCase
     public function testMapChangeTheResultValue()
     {
         // GIVEN a successful result
-        $success = new Success('success');
-        // AND a function which takes a text and returns its uppercase version
-        $toUppercase = function(string $value) { return strtoupper($value); };
+        $success = new Success('foo bar');
 
-        // WHEN the function is applied to the result
+        // WHEN a "to uppercase" function is provided and mapped on the result's success
         // AND the value is requested
         $value = $success
-            ->map($toUppercase)
+            ->map($this->toUppercase())
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the uppercase version of the original one
-        $this->assertSame('SUCCESS', $value);
+        $this->assertSame('FOO BAR', $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Success::mapOnFailure
-     */
-    public function testMapOnFailureIsNotTriggered()
-    {
-        // GIVEN a successful result
-        $success = new Success('success');
-        // AND a counter
-        $counter = 0;
-
-        // WHEN the counter is incremented if the result is a failure
-        $success->mapOnFailure(function() use ($counter) { $counter++; });
-
-        // THEN the counter has not been updated
-        $this->assertSame(0, $counter);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Success::map
      * @covers monsieurluge\Result\Result\Success::mapOnFailure
      * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
      */
-    public function testMapThenMapOnFailureCombinations()
+    public function testMapOnFailureDoesNothing()
     {
         // GIVEN a successful result
-        $success = new Success('success');
-        // AND a function which takes a text and returns its uppercase version
-        $toUpperCase = function($value) { return strtoupper($value); };
-        // AND a counter
-        $counter = 0;
+        $success = new Success('foo bar');
 
-        // WHEN the function is applied to the result
-        // AND the counter is incremented if the result is a failure
+        // WHEN a "replace error's code" function is provided and mapped on the result's failure
         // AND the value is requested
         $value = $success
-            ->map($toUpperCase)
-            ->mapOnFailure(function() use ($counter) { $counter++; })
+            ->mapOnFailure($this->replaceErrorCodeWith('err-666'))
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the value is the uppercase version of the original one
-        $this->assertSame('SUCCESS', $value);
-        // AND the counter has not been updated
-        $this->assertSame(0, $counter);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Success::map
-     * @covers monsieurluge\Result\Result\Success::mapOnFailure
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureThenMapCombinations()
-    {
-        // GIVEN a succesful result
-        $success = new Success('success');
-        // AND a function which takes a text and returns its uppercase version
-        $toUpperCase = function($value) { return strtoupper($value); };
-        // AND a counter
-        $counter = 0;
-
-        // WHEN the counter is incremented if the result is a failure
-        // AND the function is applied to the result
-        // AND the value is requested
-        $result = $success
-            ->mapOnFailure(function() use ($counter) { $counter++; })
-            ->map($toUpperCase)
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the uppercase version of the original one
-        $this->assertSame('SUCCESS', $result);
-        // AND the counter has not been updated
-        $this->assertSame(0, $counter);
+        // THEN the initial value has not been altered
+        $this->assertSame('foo bar', $value);
     }
 
     /**
      * @covers monsieurluge\Result\Result\Success::then
      */
-    public function testThenTriggersTheActionAndReturnsNewResult()
+    public function testThenIsTriggered()
     {
-        // GIVEN an action which successfully increments a number by 111
-        $incrementBy111 = new class() implements Action {
-            public function process($target): Result
-            {
-                return new Success($target + 111);
-            }
-        };
-        // AND a successful result
-        $success = new Success(555);
+        // GIVEN a successful result
+        $success = new Success('foo bar');
+        // AND a "counter" object
+        $counter = $this->createCounter();
 
-        // WHEN the action is applied to the result
-        // AND its value is requested
-        $value = $success
-            ->then($incrementBy111)
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+        // WHEN an action is provided
+        $success->then(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
-        // THEN the value is the starting one increased by 111
-        $this->assertSame(666, $value);
+        // THEN the counter object has been called once
+        $this->assertSame(1, $counter->total());
     }
 
     /**
      * @covers monsieurluge\Result\Result\Success::else
      */
-    public function testElseOnSuccessDoesNothing()
+    public function testElseIsNotTriggered()
     {
         // GIVEN the successful result
         $success = new Success(1234);
-        // AND a class which is used to store a text
-        $storage = new class () {
-            public $text = 'nothing';
-            public function store (string $text) { $this->text = $text; }
+        // AND a "counter" object
+        $counter = $this->createCounter();
+
+        // WHEN an action is provided
+        $success->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
+
+        // THEN the counter object has not been called
+        $this->assertSame(0, $counter->total());
+    }
+
+    /**
+     * Creates a "counter" object who exposes the following methods:
+     *  - increment: () -> void
+     *  - total: () -> int
+     *
+     * @return object
+     */
+    private function createCounter(): object
+    {
+        return new class ()
+        {
+            private $count = 0;
+            public function increment() { $this->count++; }
+            public function total() { return $this->count; }
         };
-
-        // WHEN the else message is sent, and the value is fetched
-        $result = $success
-            ->else(function (Error $error) use ($storage) { $storage->store($error->code()); })
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the result's content has not been altered
-        $this->assertSame(1234, $result);
-        // AND the storage's text has not been altered
-        $this->assertSame('nothing', $storage->text);
     }
 
     /**
      * Returns a function which extracts the error's code.
      *
-     * @return Closure the function as follows: f(Error) -> string
+     * @return Closure the function as follows: Error -> string
      */
     private function extractErrorCode(): Closure
     {
-        return function (Error $error) {
+        return function (Error $error): string
+        {
             return $error->code();
+        };
+    }
+
+    /**
+     * Returns a function which takes a text and returns its uppercase version.
+     *
+     * @return Closure the function as follows: string -> string
+     */
+    private function toUppercase(): Closure
+    {
+        return function (string $text): string
+        {
+            return strtoupper($text);
+        };
+    }
+
+    /**
+     * Returns a function which replaces an error's code and returns a new Error.
+     *
+     * @param string $replacement
+     *
+     * @return Closure the function as follows: Error -> Error
+     */
+    private function replaceErrorCodeWith(string $replacement): Closure
+    {
+        return function (Error $origin) use ($replacement): Error
+        {
+            return new BaseError($replacement, $origin->message());
         };
     }
 

@@ -3,11 +3,8 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\Result;
-use monsieurluge\Result\Result\Success;
 
 /**
  * A failed result holding an Error.
@@ -49,16 +46,14 @@ final class Failure implements Result
 
     /**
      * @inheritDoc
-     * @return Result a failed Result
      */
-    public function map(Closure $expression): Result
+    public function map(Closure $mutate): Result
     {
         return $this;
     }
 
     /**
      * @inheritDoc
-     * @return Result a failed Result
      */
     public function mapOnFailure(Closure $expression): Result
     {
@@ -69,9 +64,8 @@ final class Failure implements Result
 
     /**
      * @inheritDoc
-     * @return Result a failed Result
      */
-    public function then(Action $action): Result
+    public function then(Closure $doSomething): Result
     {
         return $this;
     }

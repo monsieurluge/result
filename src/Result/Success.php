@@ -3,11 +3,10 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\Result;
 
 /**
- * A successful result holding a content.
+ * A successful result holding a value.
  * @immutable
  */
 final class Success implements Result
@@ -45,17 +44,17 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function map(Closure $expression): Result
+    public function map(Closure $mutate): Result
     {
         return new self(
-            ($expression)($this->value)
+            ($mutate)($this->value)
         );
     }
 
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $expression): Result
+    public function mapOnFailure(Closure $mutateError): Result
     {
         return $this;
     }
@@ -63,9 +62,9 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function then(Action $action): Result
+    public function then(Closure $doSomething): Result
     {
-        return $action->process($this->value);
+        return ($doSomething)($this->value);
     }
 
 }

@@ -3,10 +3,8 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\BaseCombinedValues;
 use monsieurluge\Result\Result\Result;
-use monsieurluge\Result\Result\Success;
 
 /**
  * A combined results.
@@ -43,7 +41,6 @@ final class Combined implements Result
 
     /**
      * @inheritDoc
-     * @return mixed either CombinedValues or Closure's result
      */
     public function getValueOrExecOnFailure(Closure $expression)
     {
@@ -53,32 +50,32 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
-    public function map(Closure $expression): Result
+    public function map(Closure $mutate): Result
     {
-        return $this->and()->map($expression);
+        return $this->and()->map($mutate);
     }
 
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $expression): Result
+    public function mapOnFailure(Closure $mutateError): Result
     {
-        return $this->and()->mapOnFailure($expression);
+        return $this->and()->mapOnFailure($mutateError);
     }
 
     /**
      * @inheritDoc
      */
-    public function then(Action $action): Result
+    public function then(Closure $doSomething): Result
     {
-        return $this->and()->then($action);
+        return $this->and()->then($doSomething);
     }
 
     /**
      * Returns the combined values or the first Error encountered.
      * @codeCoverageIgnore
      *
-     * @return Result either a Result<{x,y}> or an Error
+     * @return Result either a Result&lt;{x,y}&gt; or an Error
      */
     private function and(): Result
     {
@@ -86,7 +83,7 @@ final class Combined implements Result
     }
 
     /**
-     * Returns a Closure as follows: f(x) -> f(y) -> Result<{x,y}>
+     * Returns a function as follows: x -> y -> Result&lt;{x,y}&gt;
      * @codeCoverageIgnore
      *
      * @return Closure
@@ -101,31 +98,19 @@ final class Combined implements Result
     }
 
     /**
-     * Returns an Action which do try to combine a Result's value with an other value.
+     * Returns an action which do try to combine a result's value with an other value.
      * @codeCoverageIgnore
      *
      * @param Result  $result  the Result to combine with
      * @param Closure $combine the "combine" function
      *
-     * @return Action
+     * @return Closure
      */
-    private function combineWith(Result $result, Closure $combine): Action
+    private function combineWith(Result $result, Closure $combine): Closure
     {
-        return new class($result, $combine) implements Action
+        return function ($target) use ($result, $combine)
         {
-            private $combine;
-            private $result;
-
-            public function __construct(Result $result, Closure $combine)
-            {
-                $this->combine = $combine;
-                $this->result  = $result;
-            }
-
-            public function process($target): Result
-            {
-                return $this->result->map(($this->combine)($target));
-            }
+            return $result->map(($combine)($target));
         };
     }
 
