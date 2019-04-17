@@ -46,16 +46,14 @@ final class Failure implements Result
 
     /**
      * @inheritDoc
-     * @return Result a failed Result
      */
-    public function map(Closure $expression): Result
+    public function map(Closure $mutate): Result
     {
         return $this;
     }
 
     /**
      * @inheritDoc
-     * @return Result a failed Result
      */
     public function mapOnFailure(Closure $expression): Result
     {
@@ -64,7 +62,10 @@ final class Failure implements Result
         );
     }
 
-    public function then(Closure $action): Result
+    /**
+     * @inheritDoc
+     */
+    public function then(Closure $doSomething): Result
     {
         return $this;
     }

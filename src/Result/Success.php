@@ -6,7 +6,7 @@ use Closure;
 use monsieurluge\Result\Result\Result;
 
 /**
- * A successful result holding a content.
+ * A successful result holding a value.
  * @immutable
  */
 final class Success implements Result
@@ -44,24 +44,27 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function map(Closure $expression): Result
+    public function map(Closure $mutate): Result
     {
         return new self(
-            ($expression)($this->value)
+            ($mutate)($this->value)
         );
     }
 
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $expression): Result
+    public function mapOnFailure(Closure $mutateError): Result
     {
         return $this;
     }
 
-    public function then(Closure $action): Result
+    /**
+     * @inheritDoc
+     */
+    public function then(Closure $doSomething): Result
     {
-        return ($action)($this->value);
+        return ($doSomething)($this->value);
     }
 
 }
