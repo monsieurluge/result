@@ -151,7 +151,7 @@ final class SuccessTest extends TestCase
      */
     private function replaceErrorCodeWith(string $replacement): Closure
     {
-        return function (Error $origin): Error
+        return function (Error $origin) use ($replacement): Error
         {
             return new BaseError($replacement, $origin->message());
         };
