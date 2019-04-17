@@ -138,29 +138,6 @@ final class FailureTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Failure::then
-     */
-    public function testThenDoesNotTriggerTheAction()
-    {
-        // GIVEN
-        $testSubject = new class() {
-            private $count = 0;
-            public function incrementByOne() { $this->count++; }
-            public function value() { return $this->count; }
-        };
-
-        $incrementCounter = new CustomAction(function($target) { $target->incrementByOne(); });
-
-        $result = new Failure(new BaseError('err-1234', 'failure'));
-
-        // WHEN
-        $result->then($incrementCounter);
-
-        // THEN
-        $this->assertSame(0, $testSubject->value());
-    }
-
-    /**
      * @covers monsieurluge\Result\Result\Failure::thenTemp
      */
     public function testFailureDoesNotTriggerTheThenTempAction()

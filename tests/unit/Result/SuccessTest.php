@@ -124,31 +124,6 @@ final class SuccessTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Success::then
-     */
-    public function testThenTriggersTheActionAndReturnsNewResult()
-    {
-        // GIVEN an action which successfully increments a number by 111
-        $incrementBy111 = new class() implements Action {
-            public function process($target): Result
-            {
-                return new Success($target + 111);
-            }
-        };
-        // AND a successful result
-        $success = new Success(555);
-
-        // WHEN the action is applied to the result
-        // AND its value is requested
-        $value = $success
-            ->then($incrementBy111)
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the starting one increased by 111
-        $this->assertSame(666, $value);
-    }
-
-    /**
      * @covers monsieurluge\Result\Result\Success::thenTemp
      */
     public function testSuccessTriggersTheThenTempAction()

@@ -55,17 +55,6 @@ interface Result
 
     /**
      * Calls the action on the successful result's value.
-     *
-     * <code>then(Action):Result&lt;T&gt;</code>
-     *
-     * @param Action $action the action to call (Action::process(&lt;T&gt;))
-     *
-     * @return Result a Result&lt;T&gt;
-     */
-    public function then(Action $action): Result;
-
-    /**
-     * Calls the action on the successful result's value.
      * The action MUST return a Result.
      * The action SHOULD return a Result&lt;T&gt;
      *
