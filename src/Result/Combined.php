@@ -69,11 +69,6 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
-    public function then(Action $action): Result
-    {
-        return $this->and()->then($action);
-    }
-
     public function thenTemp(Closure $action): Result
     {
         return $this->and()->thenTemp($action);
@@ -87,7 +82,7 @@ final class Combined implements Result
      */
     private function and(): Result
     {
-        return $this->firstResult->then($this->combineWith($this->secondResult, $this->combine()));
+        return $this->firstResult->thenTemp($this->combineWith($this->secondResult, $this->combine()));
     }
 
     /**
@@ -112,25 +107,13 @@ final class Combined implements Result
      * @param Result  $result  the Result to combine with
      * @param Closure $combine the "combine" function
      *
-     * @return Action
+     * @return Closure
      */
-    private function combineWith(Result $result, Closure $combine): Action
+    private function combineWith(Result $result, Closure $combine): Closure
     {
-        return new class($result, $combine) implements Action
+        return function ($target) use ($result, $combine)
         {
-            private $combine;
-            private $result;
-
-            public function __construct(Result $result, Closure $combine)
-            {
-                $this->combine = $combine;
-                $this->result  = $result;
-            }
-
-            public function process($target): Result
-            {
-                return $this->result->map(($this->combine)($target));
-            }
+            return $result->map(($combine)($target));
         };
     }
 

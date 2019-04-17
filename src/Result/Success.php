@@ -3,7 +3,6 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\Result;
 
 /**
@@ -58,14 +57,6 @@ final class Success implements Result
     public function mapOnFailure(Closure $expression): Result
     {
         return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function then(Action $action): Result
-    {
-        return $action->process($this->value);
     }
 
     public function thenTemp(Closure $action): Result

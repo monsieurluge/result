@@ -5,7 +5,6 @@ namespace monsieurluge\Result\Result;
 use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
 
@@ -65,15 +64,6 @@ final class Failure implements Result
         return new self(
             ($expression)($this->error)
         );
-    }
-
-    /**
-     * @inheritDoc
-     * @return Result a failed Result
-     */
-    public function then(Action $action): Result
-    {
-        return $this;
     }
 
     public function thenTemp(Closure $action): Result

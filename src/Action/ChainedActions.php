@@ -40,7 +40,9 @@ final class ChainedActions implements Action
     {
         return array_reduce(
             $this->actions,
-            function (Result $target, Action $action) { return $target->then($action); },
+            function (Result $target, Action $action) {
+                return $target->thenTemp(function ($value) use ($action) { return $action->process($value); });
+            },
             new Success($target)
         );
     }
