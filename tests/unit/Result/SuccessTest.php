@@ -68,7 +68,7 @@ final class SuccessTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Success::then
      */
-    public function testSuccessTriggersTheThenAction()
+    public function testThenIsTriggered()
     {
         // GIVEN a successful result
         $success = new Success('foo bar');
