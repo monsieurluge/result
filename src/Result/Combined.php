@@ -3,10 +3,8 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Result\BaseCombinedValues;
 use monsieurluge\Result\Result\Result;
-use monsieurluge\Result\Result\Success;
 
 /**
  * A combined results.
@@ -101,7 +99,7 @@ final class Combined implements Result
     }
 
     /**
-     * Returns an Action which do try to combine a Result's value with an other value.
+     * Returns an action which do try to combine a Result's value with an other value.
      * @codeCoverageIgnore
      *
      * @param Result  $result  the Result to combine with

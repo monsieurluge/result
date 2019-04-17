@@ -3,9 +3,6 @@
 namespace tests\unit\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
-use monsieurluge\Result\Action\CustomAction;
-use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;

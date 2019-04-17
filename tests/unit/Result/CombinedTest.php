@@ -3,7 +3,6 @@
 namespace tests\unit\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\BaseCombinedValues;
@@ -502,25 +501,6 @@ final class CombinedTest extends TestCase
                 $error->code(),
                 sprintf('[KO] %s', $error->message())
             );
-        };
-    }
-
-    /**
-     * Returns an Action which concatenate two string values.
-     *   ex: returns "foo bar" when the first value = "foo" and the second = "bar"
-     *
-     * @return Action
-     */
-    private function actionConcatTheStringValues(): Action
-    {
-        return new class() implements Action
-        {
-            public function process($target): Result
-            {
-                return new Success(
-                    sprintf('%s %s', $target->first(), $target->second())
-                );
-            }
         };
     }
 

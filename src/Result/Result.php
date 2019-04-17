@@ -3,7 +3,6 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Action\Action;
 
 interface Result
 {
