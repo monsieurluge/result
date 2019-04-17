@@ -156,16 +156,13 @@ final class SuccessTest extends TestCase
         // GIVEN a successful result
         $success = new Success('foo bar');
         // AND a "counter" object
-        $counter = new class () {
-            public $count = 0;
-            public function increment() { $this->count++; }
-        };
+        $counter = $this->createCounter();
 
         // WHEN an action is provided
         $success->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
-        $this->assertSame(1, $counter->count);
+        $this->assertSame(1, $counter->total());
     }
 
     /**
@@ -190,6 +187,22 @@ final class SuccessTest extends TestCase
         $this->assertSame(1234, $result);
         // AND the storage's text has not been altered
         $this->assertSame('nothing', $storage->text);
+    }
+
+    /**
+     * Creates a "counter" object who exposes the following methods:
+     *  - increment: () -> void
+     *  - total: () -> int
+     *
+     * @return object
+     */
+    private function createCounter(): object
+    {
+        return new class () {
+            private $count = 0;
+            public function increment() { $this->count++; }
+            public function total() { return $this->count; }
+        };
     }
 
     /**

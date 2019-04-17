@@ -388,16 +388,13 @@ final class CombinedTest extends TestCase
             new Success('ok')
         );
         // AND a "counter" object
-        $counter = new class () {
-            public $count = 0;
-            public function increment() { $this->count++; }
-        };
+        $counter = $this->createCounter();
 
         // WHEN an action is provided
         $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
-        $this->assertSame(1, $counter->count);
+        $this->assertSame(1, $counter->total());
     }
 
     /**
@@ -413,16 +410,13 @@ final class CombinedTest extends TestCase
             )
         );
         // AND a "counter" object
-        $counter = new class () {
-            public $count = 0;
-            public function increment() { $this->count++; }
-        };
+        $counter = $this->createCounter();
 
         // WHEN an action is provided
         $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
-        $this->assertSame(0, $counter->count);
+        $this->assertSame(0, $counter->total());
     }
 
     /**
@@ -438,16 +432,13 @@ final class CombinedTest extends TestCase
             new Success('test')
         );
         // AND a "counter" object
-        $counter = new class () {
-            public $count = 0;
-            public function increment() { $this->count++; }
-        };
+        $counter = $this->createCounter();
 
         // WHEN an action is provided
         $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
-        $this->assertSame(0, $counter->count);
+        $this->assertSame(0, $counter->total());
     }
 
     /**
@@ -465,16 +456,13 @@ final class CombinedTest extends TestCase
             )
         );
         // AND a "counter" object
-        $counter = new class () {
-            public $count = 0;
-            public function increment() { $this->count++; }
-        };
+        $counter = $this->createCounter();
 
         // WHEN an action is provided
         $combined->thenTemp(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
-        $this->assertSame(0, $counter->count);
+        $this->assertSame(0, $counter->total());
     }
 
     /**
@@ -637,6 +625,22 @@ final class CombinedTest extends TestCase
     private function concatTheStringValues(): Closure
     {
         return function (CombinedValues $values) { return sprintf('%s %s', $values->first(), $values->second()); };
+    }
+
+    /**
+     * Creates a "counter" object who exposes the following methods:
+     *  - increment: () -> void
+     *  - total: () -> int
+     *
+     * @return object
+     */
+    private function createCounter(): object
+    {
+        return new class () {
+            private $count = 0;
+            public function increment() { $this->count++; }
+            public function total() { return $this->count; }
+        };
     }
 
     /**
