@@ -181,7 +181,7 @@ final class CombinedTest extends TestCase
         // AND a "counter" object
         $counter = $this->createCounter();
 
-        // WHEN an action is provided
+        // WHEN an action is provided, which increments the counter
         $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has not been called
@@ -194,14 +194,11 @@ final class CombinedTest extends TestCase
     public function testSuccessesDoesNotTriggerTheElseMethod()
     {
         // GIVEN a successes combination
-        $combined = new Combined(
-            new Success('test'),
-            new Success('ok')
-        );
+        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
         // AND a "counter" object
         $counter = $this->createCounter();
 
-        // WHEN an action is provided
+        // WHEN an action is provided, which increments the counter
         $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
 
         // THEN the counter object has not been called
