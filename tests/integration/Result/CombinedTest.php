@@ -208,61 +208,19 @@ final class CombinedTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Combined::else
      */
-    public function testSuccessAndFailureTriggersTheElseMethod()
+    public function testSuccessesAndFailuresTriggersTheElseMethod()
     {
         // GIVEN a success and failure combination
-        $combined = new Combined(
+        $combined = new Combined([
             new Success('test'),
-            new Failure(
-                new BaseError('err-1234', 'failure')
-            )
-        );
-        // AND a "counter" object
-        $counter = $this->createCounter();
-
-        // WHEN an action is provided
-        $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
-
-        // THEN the counter object has been called once
-        $this->assertSame(1, $counter->total());
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::else
-     */
-    public function testFailureAndSuccessTriggersTheElseMethod()
-    {
-        // GIVEN a failure and success combination
-        $combined = new Combined(
-            new Failure(
-                new BaseError('err-1234', 'failure')
-            ),
-            new Success('test')
-        );
-        // AND a "counter" object
-        $counter = $this->createCounter();
-
-        // WHEN an action is provided
-        $combined->else(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
-
-        // THEN the counter object has been called once
-        $this->assertSame(1, $counter->total());
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::else
-     */
-    public function testFailuresTriggersTheElseMethod()
-    {
-        // GIVEN a failures combination
-        $combined = new Combined(
             new Failure(
                 new BaseError('err-1234', 'failure one')
             ),
+            new Success('!!'),
             new Failure(
-                new BaseError('err-5678', 'failure two')
+                new BaseError('err-4567', 'failure two')
             )
-        );
+        ]);
         // AND a "counter" object
         $counter = $this->createCounter();
 
