@@ -3,7 +3,6 @@
     "type": "library",
     "license": "MIT",
     "description": "Result-oriented objects and context",
-    "version": "2.0.0",
     "authors": [
         {
             "name": "Laurent Vergé",
