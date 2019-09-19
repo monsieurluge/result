@@ -31,62 +31,24 @@ final class CombinedTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testGetTheValueOfSuccessAndFailureReturnsTheError()
+    public function testGetTheValueOfSuccessesAndFailuresReturnsTheFirstError()
     {
-        // GIVEN combined success and failure
-        $combined = new Combined(
+        // GIVEN combined successes and failure
+        $combined = new Combined([
             new Success('test'),
-            new Failure(
-                new BaseError('err-1234', 'failure')
-            )
-        );
-
-        // WHEN the value is requested
-        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the failure error's code
-        $this->assertSame('err-1234', $value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
-     */
-    public function testGetTheValueOfFailureAndSuccessReturnsTheError()
-    {
-        // GIVEN combined failure and success
-        $combined = new Combined(
-            new Failure(
-                new BaseError('err-1234', 'failure')
-            ),
-            new Success('test')
-        );
-
-        // WHEN the value is requested
-        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the failure error's code
-        $this->assertSame('err-1234', $value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
-     */
-    public function testGetValueOfFailuresReturnsTheFirstError()
-    {
-        // GIVEN combined failures
-        $combined = new Combined(
             new Failure(
                 new BaseError('err-1234', 'failure one')
             ),
+            new Success('!!'),
             new Failure(
                 new BaseError('err-4567', 'failure two')
             )
-        );
+        ]);
 
         // WHEN the value is requested
         $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the value is the first failure error's code
+        // THEN the value is the failure error's code
         $this->assertSame('err-1234', $value);
     }
 
