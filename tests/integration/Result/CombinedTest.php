@@ -151,14 +151,11 @@ final class CombinedTest extends TestCase
     public function testSuccessesTriggersTheThenAction()
     {
         // GIVEN two combined successes
-        $combined = new Combined(
-            new Success('test'),
-            new Success('ok')
-        );
+        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
         // AND a "counter" object
         $counter = $this->createCounter();
 
-        // WHEN an action is provided
+        // WHEN an action is provided, which increments the counter
         $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
         // THEN the counter object has been called once
