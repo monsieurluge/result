@@ -19,17 +19,13 @@ final class CombinedTest extends TestCase
     public function testGetTheValueOfSuccessesReturnsCombinedValues()
     {
         // GIVEN combined successes
-        $combined = new Combined(
-            new Success('test'),
-            new Success('ok')
-        );
+        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
 
         // WHEN the value is requested
         $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the value is the combined success values
-        $this->assertSame('test', $value->first());
-        $this->assertSame('ok', $value->second());
+        // THEN the value is an array containing the successes values, order unchanged
+        $this->assertSame([ 'test', 'ok', '!!' ], $value);
     }
 
     /**
