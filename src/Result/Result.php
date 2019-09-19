@@ -4,9 +4,12 @@ namespace monsieurluge\Result\Result;
 
 use Closure;
 
+/**
+ * Result interface.
+ * A Result "contains" either the desired value or an Error.
+ */
 interface Result
 {
-
     /**
      * Act on the failure's error, then returns the failure.
      *
@@ -44,7 +47,7 @@ interface Result
      *
      * <code>mapOnFailure: (Error -> Error) -> Result</code>
      *
-     * @param Closure $expression the mutation as follows: Error -> Error
+     * @param Closure $mutateError the mutation as follows: Error -> Error
      *
      * @return Result a Result&lt;T&gt;
      */
@@ -62,5 +65,4 @@ interface Result
      * @return Result a Result&lt;T&gt;
      */
     public function then(Closure $doSomething): Result;
-
 }
