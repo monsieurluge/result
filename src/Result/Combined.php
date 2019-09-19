@@ -3,7 +3,6 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
-use monsieurluge\Result\Result\BaseCombinedValues;
 use monsieurluge\Result\Result\Result;
 
 /**
@@ -11,22 +10,17 @@ use monsieurluge\Result\Result\Result;
  */
 final class Combined implements Result
 {
-
-    /** @var Result **/
-    private $firstResult;
-    /** @var Result **/
-    private $secondResult;
+    /** @var Result[] **/
+    private $results;
 
     /**
      * @codeCoverageIgnore
      *
-     * @param Result $first
-     * @param Result $second
+     * @param Result[] $results
      */
-    public function __construct(Result $first, Result $second)
+    public function __construct(array $results)
     {
-        $this->firstResult  = $first;
-        $this->secondResult = $second;
+        $this->results = $results;
     }
 
     /**
@@ -75,43 +69,38 @@ final class Combined implements Result
      * Returns the combined values or the first Error encountered.
      * @codeCoverageIgnore
      *
-     * @return Result either a Result&lt;{x,y}&gt; or an Error
+     * @return Result either a Result&lt;{x,y,z...}&gt; or an Error
      */
     private function and(): Result
     {
-        return $this->firstResult->then($this->combineWith($this->secondResult, $this->combine()));
+        return array_reduce($this->results, $this->combineSuccesses(), new Success([]));
     }
 
     /**
-     * Returns a function as follows: x -> y -> Result&lt;{x,y}&gt;
-     * @codeCoverageIgnore
+     * Returns a function which combines successful result values.
      *
-     * @return Closure
+     * @return Closure the function as follows: (Result<[x,y...]>, Result<v>) -> Result<[x,y...,v]>
      */
-    private function combine(): Closure
+    private function combineSuccesses(): Closure
     {
-        return function ($firstValue) {
-            return function ($secondValue) use ($firstValue) {
-                return new BaseCombinedValues($firstValue, $secondValue);
-            };
+        return function (Result $carry, Result $item): Result {
+            return $carry->then($this->mergeValues($item));
         };
     }
 
     /**
-     * Returns an action which do try to combine a result's value with an other value.
-     * @codeCoverageIgnore
+     * Returns a function which merges a successful result value with an array.
      *
-     * @param Result  $result  the Result to combine with
-     * @param Closure $combine the "combine" function
+     * @param Result $item the value to merge
      *
-     * @return Closure
+     * @return Closure the function as follows: [x,y...] -> Result<[x,y...,v]> where v is the value to merge with
      */
-    private function combineWith(Result $result, Closure $combine): Closure
+    private function mergeValues(Result $item): Closure
     {
-        return function ($target) use ($result, $combine)
-        {
-            return $result->map(($combine)($target));
+        return function (array $values) use ($item): Result {
+            return $item->map(function ($currentValue) use ($values) {
+                return array_merge($values, [ $currentValue ]);
+            });
         };
     }
-
 }
