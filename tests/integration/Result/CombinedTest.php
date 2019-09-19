@@ -168,65 +168,23 @@ final class CombinedTest extends TestCase
     public function testSuccessAndFailureDoesNotTriggerTheThenAction()
     {
         // GIVEN a success and failure combination
-        $combined = new Combined(
+        $combined = new Combined([
             new Success('test'),
             new Failure(
-                new BaseError('err-1234', 'failure')
-            )
-        );
-        // AND a "counter" object
-        $counter = $this->createCounter();
-
-        // WHEN an action is provided
-        $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
-
-        // THEN the counter object has been called once
-        $this->assertSame(0, $counter->total());
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::then
-     */
-    public function testFailureAndSuccessDoesNotTriggerTheThenAction()
-    {
-        // GIVEN a failure and success combination
-        $combined = new Combined(
-            new Failure(
-                new BaseError('err-1234', 'failure')
+                new BaseError('err-1234', 'failure one')
             ),
-            new Success('test')
-        );
-        // AND a "counter" object
-        $counter = $this->createCounter();
-
-        // WHEN an action is provided
-        $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
-
-        // THEN the counter object has been called once
-        $this->assertSame(0, $counter->total());
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::then
-     */
-    public function testFailuresDoesNotTriggerTheThenAction()
-    {
-        // GIVEN a failure and success combination
-        $combined = new Combined(
+            new Success('!!'),
             new Failure(
-                new BaseError('err-1234', 'failure')
-            ),
-            new Failure(
-                new BaseError('err-5678', 'error')
+                new BaseError('err-4567', 'failure two')
             )
-        );
+        ]);
         // AND a "counter" object
         $counter = $this->createCounter();
 
         // WHEN an action is provided
         $combined->then(function () use ($counter) { $counter->increment(); return new Success('foo'); });
 
-        // THEN the counter object has been called once
+        // THEN the counter object has not been called
         $this->assertSame(0, $counter->total());
     }
 
