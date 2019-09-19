@@ -1,6 +1,6 @@
 <?php
 
-namespace tests\unit\Result;
+namespace tests\integration\Result;
 
 use Closure;
 use monsieurluge\Result\Error\BaseError;
@@ -8,13 +8,11 @@ use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Combined;
 use monsieurluge\Result\Result\CombinedValues;
 use monsieurluge\Result\Result\Failure;
-use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
 
 final class CombinedTest extends TestCase
 {
-
     /**
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
