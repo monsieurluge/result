@@ -6,7 +6,6 @@ use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Combined;
-use monsieurluge\Result\Result\CombinedValues;
 use monsieurluge\Result\Result\Failure;
 use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
@@ -106,10 +105,7 @@ final class CombinedTest extends TestCase
     public function testMapOnFailureWithSuccessesDoesNothing()
     {
         // GIVEN combined successes
-        $combined = new Combined(
-            new Success('test'),
-            new Success('ok')
-        );
+        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
 
         // WHEN a "append to error's code" function is provided and mapped on the result's failure
         // AND the value is requested
@@ -117,9 +113,8 @@ final class CombinedTest extends TestCase
             ->mapOnFailure($this->appendToErrorCode(' KO'))
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
-        // THEN the value is the combined success values
-        $this->assertSame('test', $value->first());
-        $this->assertSame('ok', $value->second());
+        // THEN the value is an array containing the successes values, order unchanged
+        $this->assertSame([ 'test', 'ok', '!!' ], $value);
     }
 
     /**
