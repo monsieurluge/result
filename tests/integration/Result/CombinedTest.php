@@ -56,22 +56,19 @@ final class CombinedTest extends TestCase
      * @covers monsieurluge\Result\Result\Combined::map
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapOnSuccessesChangeTheResultValue()
+    public function testCanMapOnSuccesses()
     {
         // GIVEN combined successes
-        $combined = new Combined(
-            new Success('test'),
-            new Success('ok')
-        );
+        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
 
-        // WHEN a "concatenate" function is provided and mapped on the results
-        // AND the value is requested
+        // WHEN the values are concatenated
+        // AND the resulting value is requested
         $value = $combined
-            ->map($this->concatenate())
+            ->map(function (array $texts) { return implode(' ', $texts); })
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the concatenation of the successes values
-        $this->assertSame('test ok', $value);
+        $this->assertSame('test ok !!', $value);
     }
 
     /**
