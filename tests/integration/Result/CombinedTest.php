@@ -61,7 +61,7 @@ final class CombinedTest extends TestCase
         // GIVEN combined successes
         $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
 
-        // WHEN the values are concatenated
+        // WHEN the result values are requested to be concatenated
         // AND the resulting value is requested
         $value = $combined
             ->map(function (array $texts) { return implode(' ', $texts); })
@@ -75,20 +75,24 @@ final class CombinedTest extends TestCase
      * @covers monsieurluge\Result\Result\Combined::map
      * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
      */
-    public function testMapOnSuccessAndFailureDitNotChangeTheResultValue()
+    public function testCannotMapWhenThereIsAtLeastOneFailure()
     {
         // GIVEN combined success and failure
-        $combined = new Combined(
+        $combined = new Combined([
             new Success('test'),
             new Failure(
-                new BaseError('err-1234', 'failure')
+                new BaseError('err-1234', 'failure one')
+            ),
+            new Success('!!'),
+            new Failure(
+                new BaseError('err-4567', 'failure two')
             )
-        );
+        ]);
 
-        // WHEN a "concatenate" function is provided and mapped on the results
+        // WHEN the result values are requested to be concatenated
         // AND the value is requested
         $value = $combined
-            ->map($this->concatenate())
+            ->map(function (array $texts) { return implode(' ', $texts); })
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the failure error's code
