@@ -64,7 +64,7 @@ final class CombinedTest extends TestCase
         // WHEN the result values are requested to be concatenated
         // AND the resulting value is requested
         $value = $combined
-            ->map(function (array $texts) { return implode(' ', $texts); })
+            ->map($this->concatenateTexts())
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the concatenation of the successes values
@@ -92,60 +92,10 @@ final class CombinedTest extends TestCase
         // WHEN the result values are requested to be concatenated
         // AND the value is requested
         $value = $combined
-            ->map(function (array $texts) { return implode(' ', $texts); })
+            ->map($this->concatenateTexts())
             ->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the value is the failure error's code
-        $this->assertSame('err-1234', $value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::map
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureAndSuccessDitNotChangeTheResultValue()
-    {
-        // GIVEN combined failure and success
-        $combined = new Combined(
-            new Failure(
-                new BaseError('err-1234', 'failure')
-            ),
-            new Success('test')
-        );
-
-        // WHEN a "concatenate" function is provided and mapped on the results
-        // AND the value is requested
-        $value = $combined
-            ->map($this->concatenate())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the failure error's code
-        $this->assertSame('err-1234', $value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
-     * @covers monsieurluge\Result\Result\Combined::map
-     */
-    public function testMapFailuresReturnsTheFirstFailure()
-    {
-        // GIVEN combined failures
-        $combined = new Combined(
-            new Failure(
-                new BaseError('err-1234', 'failure one')
-            ),
-            new Failure(
-                new BaseError('err-5678', 'failure two')
-            )
-        );
-
-        // WHEN a "concatenate" function is provided and mapped on the results
-        // AND the value is requested
-        $value = $combined
-            ->map($this->concatenate())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the first failure error's code
         $this->assertSame('err-1234', $value);
     }
 
@@ -423,19 +373,14 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * Returns a function which concatenates the combined texts.
+     * Returns a function which concatenates an array of text.
      *
-     * @return Closure the function as follows: CombinedValues -> string
+     * @return Closure the function as follows: string[] -> string
      */
-    private function concatenate(): Closure
+    private function concatenateTexts(): Closure
     {
-        return function (CombinedValues $texts): string
-        {
-            return sprintf(
-                '%s %s',
-                $texts->first(),
-                $texts->second()
-            );
+        return function (array $texts): string {
+            return implode(' ', $texts);
         };
     }
 
