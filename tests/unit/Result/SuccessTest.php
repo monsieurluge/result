@@ -5,7 +5,6 @@ namespace tests\unit\Result;
 use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\Result;
 use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
 
