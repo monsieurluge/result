@@ -10,35 +10,35 @@ The code also becomes more declarative and object oriented.
 
 The Error object helps to identify the error thrown in order to trace it efficiently.
 
-Example, using a `ClientNotFound` error thrown when the client does not exist in the storage:
+Example, using an `EmployeeNotFound` error thrown when the employee was not found in the corresponding storage:
 
 ```php
 <?php
 
 namespace App\Error\Storage;
 
-use App\Domain\ClientId;
+use App\Domain\Employee\UniqueId;
 use monsieurluge\Result\Error\Error;
 
-final class ClientNotFound implements Error
+final class EmployeeNotFound implements Error
 {
-    private $uniqueId;
+    private $identifier;
 
-    public function __construct(ClientId $uniqueId)
+    public function __construct(UniqueId $identifier)
     {
-        $this->uniqueId = $uniqueId;
+        $this->identifier = $identifier;
     }
 
     public function code(): string
     {
-        return 'sto-42'; // a dedicated and unique error code
+        return 'emp-42'; // a dedicated and unique error code
     }
 
     public function message(): string
     {
         return sprintf(
-            'the client identified by "%s" does not exist',
-            $this->uniqueId->value()
+            'the employee identified by "%s" does not exist',
+            $this->identifier->toString()
         );
     }
 }
@@ -49,26 +49,23 @@ final class ClientNotFound implements Error
 
 namespace App\Repository\Doctrine; // or any storage type needed
 
-use App\Domain\ClientId;
-use App\Error\Storage\ClientNotFound;
-use App\Repository\ClientRepository as ClientRepositoryInterface;
+use App\Domain\Employee\UniqueId;
+use App\Repository\UserRepository;
 use monsieurluge\Result\Error\Error;
 use monsieurluge\Result\Result\Failure;
 use monsieurluge\Result\Result\Success;
 
-final class ClientRepository implements ClientRepositoryInterface
+final class SqlUserRepository implements UserRepository
 {
-    [...] // variables declarations, constructor, etc
+    // property declarations, constructor, etc
 
-    public function client(ClientId $identifier): Result // Result<User>
+    public function user(UniqueId $identifier): Result // a Result<User>
     {
-        $client = $this->storage->clientById($identifier->value());
+        $row = $this->storage->getUserById($identifier->toString());
 
-        return is_null($client)
-            ? new Failure(
-                new ClientNotFound($identifier)
-            )
-            : new Success($this->clientFactory->fromDbModel($client));
+        return is_null($row)
+            ? new Failure(new UserNotFound($identifier))
+            : new Success($this->userFactory->fromRawSqlData($row));
     }
 }
 ```
