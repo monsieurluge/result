@@ -76,28 +76,21 @@ The Result objects help to write declarative code and to throw away the usuals `
 
 So, the Exceptions are only used for what they are originally intended for: throw an alert because of a exceptional situation that cannot be handled normally.
 
-Example, using a complete selling process:
+#### Success
 
-```php
-<?php
+A Success always holds the desired result (ex: Result<User>) and allow the developer to act on this result via the _map_ and _then_ methods.
 
-final class Agent
-{
-    [...] // variables declarations, constructor, etc
+The _map_ one does not affect the result type, whereas the _then_ method returned value must be either a success or a failure.
 
-    public function sellProduct(Product $newSuperProduct) // Result<Bill>
-    {
-        return $this->callCenter
-            ->call(new PhoneNumber('0123456789')) // Result<Person>
-            ->then(new PresentProduct($newSuperProduct)) // Result<Person>
-            ->then(new Sale($newSuperProduct)) // Result<Person>
-            ->map(function (Person $client) use ($newSuperProduct) { // Result<Bill>
-                return $this->createBill($client, $newSuperProduct);
-            })
-            ->else(new SaleRefused($this)); // Failure
-    }
-}
-```
+#### Failure
+
+A Failure holds the first encountered error, if any. The Result methods _mapOnFailure_ and _else_ allows to manipulate the error in order to add details or fire some events.
+
+todo
+
+#### Combined
+
+todo
 
 ## Complete examples
 
