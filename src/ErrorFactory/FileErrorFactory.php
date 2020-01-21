@@ -32,7 +32,7 @@ final class FileErrorFactory implements ErrorFactory
             ));
         }
 
-        $this->createDefaultError($configuration);
+        return $this->createDefaultError($configuration);
     }
 
     /**
