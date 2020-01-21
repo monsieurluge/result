@@ -42,4 +42,21 @@ final class FileErrorFactoryTest extends TestCase
         // THEN the expected exception is thrown
     }
 
+    /**
+     * @covers monsieurluge\Result\ErrorFactory\FileErrorFactory::create
+     */
+    public function testExceptionIsThrownWhenNoDefaultErrorIsProvided()
+    {
+        // GIVEN a config file in which no default error is provided
+        $file = sprintf('%s/errorsWithoutDefault.json', __DIR__);
+        // AND the error factory
+        $factory = new FileErrorFactory($file);
+        // AND the expected exception
+        $this->expectException(InvalidArgumentException::class);
+
+        // WHEN an unknown error is requested
+        $factory->create('unknown');
+
+        // THEN the expected exception is thrown
+    }
 }
