@@ -57,7 +57,7 @@ final class FileErrorFactory implements ErrorFactory
     /**
      * Creates the default configured Error.
      *
-     * @param array $configuration
+     * @param array<string,array<string,string>> $configuration
      *
      * @return Error
      * @throws InvalidArgumentException
@@ -80,8 +80,8 @@ final class FileErrorFactory implements ErrorFactory
     /**
      * Creates the named Error.
      *
-     * @param array $raw          the raw errors dictionary
-     * @param array $replacements a string replacement list as follows: [ 'name'=>'replacement', 'name 2'=>'replacement 2'... ]
+     * @param array<string,string> $raw          the raw errors dictionary
+     * @param array<string,string> $replacements a string replacement list as follows: [ 'name'=>'replacement', 'name 2'=>'replacement 2'... ]
      *
      * @return Error
      */
