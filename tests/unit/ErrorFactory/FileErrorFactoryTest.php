@@ -78,4 +78,23 @@ final class FileErrorFactoryTest extends TestCase
         // AND the error's message is "bar"
         $this->assertSame('bar', $error->message());
     }
+
+    /**
+     * @covers monsieurluge\Result\ErrorFactory\FileErrorFactory::create
+     */
+    public function testExpectedErrorIsReturned()
+    {
+        // GIVEN a config file in which the following error is defined: name="test #1", code="test", message="test OK"
+        $file = sprintf('%s/errorsWithoutDefault.json', __DIR__);
+        // AND the error factory
+        $factory = new FileErrorFactory($file);
+
+        // WHEN a configured error is requested
+        $error = $factory->create('test');
+
+        // THEN the error's code is "test-001"
+        $this->assertSame('test-001', $error->code());
+        // THEN the error's message is "test OK"
+        $this->assertSame('test OK', $error->message());
+    }
 }
