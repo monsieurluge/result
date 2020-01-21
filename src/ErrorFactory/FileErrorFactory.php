@@ -32,7 +32,9 @@ final class FileErrorFactory implements ErrorFactory
             ));
         }
 
-        return $this->createDefaultError($configuration);
+        return isset($configuration[$name])
+            ? $this->createError($configuration[$name], $replacements)
+            : $this->createDefaultError($configuration);
     }
 
     /**
@@ -72,6 +74,28 @@ final class FileErrorFactory implements ErrorFactory
         return new BaseError(
             $configuration['default']['code'],
             $configuration['default']['message']
+        );
+    }
+
+    /**
+     * Creates the named Error.
+     *
+     * @param array $raw          the raw errors dictionary
+     * @param array $replacements a string replacement list as follows: [ 'name'=>'replacement', 'name 2'=>'replacement 2'... ]
+     *
+     * @return Error
+     */
+    private function createError(array $raw, array $replacements): Error
+    {
+        $message = $raw['message'];
+
+        foreach ($replacements as $name => $replacement) {
+            $message = str_replace(sprintf('{{%s}}', $name), $replacement, $message);
+        }
+
+        return new BaseError(
+            $raw['code'],
+            $message
         );
     }
 }
