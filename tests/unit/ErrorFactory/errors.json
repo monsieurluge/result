@@ -1,0 +1,10 @@
+{
+    "default": {
+        "code": "foo",
+        "message": "bar"
+    },
+    "test": {
+        "code": "test-002",
+        "message": "test {{toReplace}} OK"
+    }
+}

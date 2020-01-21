@@ -59,4 +59,23 @@ final class FileErrorFactoryTest extends TestCase
 
         // THEN the expected exception is thrown
     }
+
+    /**
+     * @covers monsieurluge\Result\ErrorFactory\FileErrorFactory::create
+     */
+    public function testDefaultErrorIsReturnedWhenErrorNameIsUnknown()
+    {
+        // GIVEN a config file in which a default error is provided (code: "foo-1", message: "bar")
+        $file = sprintf('%s/errors.json', __DIR__);
+        // AND the error factory
+        $factory = new FileErrorFactory($file);
+
+        // WHEN an unknown error is requested
+        $error = $factory->create('unknown');
+
+        // THEN the error's code is "foo"
+        $this->assertSame('foo', $error->code());
+        // AND the error's message is "bar"
+        $this->assertSame('bar', $error->message());
+    }
 }
