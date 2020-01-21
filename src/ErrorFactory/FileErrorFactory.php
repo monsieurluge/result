@@ -3,6 +3,7 @@
 namespace monsieurluge\Result\ErrorFactory;
 
 use InvalidArgumentException;
+use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
 
 final class FileErrorFactory implements ErrorFactory
@@ -31,7 +32,7 @@ final class FileErrorFactory implements ErrorFactory
             ));
         }
 
-        throw new \RuntimeException(sprintf('method %s::%s not fully implemented', __CLASS__, __FUNCTION__));
+        $this->createDefaultError($configuration);
     }
 
     /**
@@ -49,5 +50,28 @@ final class FileErrorFactory implements ErrorFactory
                 $path
             ));
         }
+    }
+
+    /**
+     * Creates the default configured Error.
+     *
+     * @param array $configuration
+     *
+     * @return Error
+     * @throws InvalidArgumentException
+     */
+    private function createDefaultError(array $configuration): Error
+    {
+        if (false === isset($configuration['default'])) {
+            throw new InvalidArgumentException(sprintf(
+                'cannot create an Error: there is no default configuration in the file "%s"',
+                $this->path
+            ));
+        }
+
+        return new BaseError(
+            $configuration['default']['code'],
+            $configuration['default']['message']
+        );
     }
 }
