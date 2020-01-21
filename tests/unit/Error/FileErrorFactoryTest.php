@@ -23,4 +23,23 @@ final class FileErrorFactoryTest extends TestCase
 
         // THEN the expected exception is thrown
     }
+
+    /**
+     * @covers monsieurluge\Result\ErrorFactory\FileErrorFactory::create
+     */
+    public function testExceptionIsThrownWhenConfigFileIsNotReadable()
+    {
+        // GIVEN a config file in which the JSON is incorrect
+        $file = sprintf('%s/incorrectJsonFile.json', __DIR__);
+        // AND the factory
+        $factory = new FileErrorFactory($file);
+        // AND the expected exception
+        $this->expectException(InvalidArgumentException::class);
+
+        // WHEN the error object is requested
+        $factory->create('---');
+
+        // THEN the expected exception is thrown
+    }
+
 }
