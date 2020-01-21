@@ -116,4 +116,25 @@ final class FileErrorFactoryTest extends TestCase
         // THEN the error's message is "test {{toReplace}} OK"
         $this->assertSame('test {{toReplace}} OK', $error->message());
     }
+
+    /**
+     * @covers monsieurluge\Result\ErrorFactory\FileErrorFactory::create
+     */
+    public function testErrorMessageHasBeenUpdated()
+    {
+        // GIVEN a config file in which the following error is defined: name="test #1", code="test", message="test {{toReplace}} OK"
+        $file = sprintf('%s/errors.json', __DIR__);
+        // AND the error factory
+        $factory = new FileErrorFactory($file);
+        // AND a replacement string
+        $replaceBy = [ 'toReplace' => 'replaced' ];
+
+        // WHEN a configured error is requested and no string replacement is provided
+        $error = $factory->create('test', $replaceBy);
+
+        // THEN the error's code is "test-002"
+        $this->assertSame('test-002', $error->code());
+        // THEN the error's message is "test replaced OK"
+        $this->assertSame('test replaced OK', $error->message());
+    }
 }
