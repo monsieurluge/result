@@ -1,6 +1,6 @@
 <?php
 
-namespace tests\unit\Error;
+namespace tests\unit\ErrorFactory;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
