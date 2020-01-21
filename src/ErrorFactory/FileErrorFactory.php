@@ -23,7 +23,7 @@ final class FileErrorFactory implements ErrorFactory
      */
     public function create(string $name, array $replacements = []): Error
     {
-        $configuration = json_decode(file_get_contents($this->path), true);
+        $configuration = json_decode(strval(file_get_contents($this->path)), true);
 
         if (is_null($configuration)) {
             throw new InvalidArgumentException(sprintf(
