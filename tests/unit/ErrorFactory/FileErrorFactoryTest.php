@@ -97,4 +97,23 @@ final class FileErrorFactoryTest extends TestCase
         // THEN the error's message is "test OK"
         $this->assertSame('test OK', $error->message());
     }
+
+    /**
+     * @covers monsieurluge\Result\ErrorFactory\FileErrorFactory::create
+     */
+    public function testErrorMessageContainsRawTextWhenNoReplacementStringIsProvided()
+    {
+        // GIVEN a config file in which the following error is defined: name="test #1", code="test", message="test {{toReplace}} OK"
+        $file = sprintf('%s/errors.json', __DIR__);
+        // AND the error factory
+        $factory = new FileErrorFactory($file);
+
+        // WHEN a configured error is requested and no string replacement is provided
+        $error = $factory->create('test');
+
+        // THEN the error's code is "test-002"
+        $this->assertSame('test-002', $error->code());
+        // THEN the error's message is "test {{toReplace}} OK"
+        $this->assertSame('test {{toReplace}} OK', $error->message());
+    }
 }
