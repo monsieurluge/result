@@ -237,17 +237,17 @@ final class CombinedTest extends TestCase
     public function testSuccessfulFlatMapOnSuccessesChangesTheResultingValue()
     {
         // GIVEN a successes combination
-        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
-        // AND a method which converts the texts to their uppercase version
-        $toUppercase = function (array $results) {
-            return new Combined([ strtoupper($results[0]), strtoupper($results[1]) ]);
+        $combined = new Combined([ new Success('test'), new Success('ok') ]);
+        // AND a method which contatenates the texts
+        $concatenate = function (array $results) {
+            return new Success(sprintf('%s %s', $results[0], $results[1]));
         };
 
         // WHEN the action is applied, and the values are fetched
-        $values = $combined->flatMap($toUppercase)->getValueOrExecOnFailure($this->extractErrorCode());
+        $values = $combined->flatMap($concatenate)->getValueOrExecOnFailure($this->extractErrorCode());
 
         // THEN the values are as expected
-        $this->assertSame([ 'TEST', 'OK' ], $values);
+        $this->assertSame('test ok', $values);
     }
 
     /**
