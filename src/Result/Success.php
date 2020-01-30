@@ -36,6 +36,14 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
+    public function flatMap(Closure $doSomething): Result
+    {
+        return ($doSomething)($this->value);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return $this->value;

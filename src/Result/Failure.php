@@ -39,6 +39,14 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
+    public function flatMap(Closure $doSomething): Result
+    {
+        throw new \RuntimeException(sprintf('method %s::%s not implemented', __CLASS__, __FUNCTION__));
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return ($expression)($this->error);

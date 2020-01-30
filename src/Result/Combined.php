@@ -36,6 +36,14 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
+    public function flatMap(Closure $doSomething): Result
+    {
+        throw new \RuntimeException(sprintf('method %s::%s not implemented', __CLASS__, __FUNCTION__));
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return $this->and()->getValueOrExecOnFailure($expression);
