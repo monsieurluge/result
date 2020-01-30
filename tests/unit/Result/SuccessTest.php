@@ -5,6 +5,7 @@ namespace tests\unit\Result;
 use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
+use monsieurluge\Result\Result\Failure;
 use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
 
@@ -113,6 +114,23 @@ final class SuccessTest extends TestCase
 
         // THEN the value is as expected
         $this->assertSame(2234, $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::flatMap
+     */
+    public function testFailedFlatMapOnSuccessChangesTheResultingValue()
+    {
+        // GIVEN a successful result
+        $success = new Success(1234);
+        // AND a method which returns a failure
+        $fail = function (int $initial) { return new Failure(new BaseError('fail', sprintf('was %s', $initial))); };
+
+        // WHEN the method is applied, and the resulting error is fetched
+        $errorCode = $success->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error is as expected
+        $this->assertSame('fail', $errorCode);
     }
 
     /**
