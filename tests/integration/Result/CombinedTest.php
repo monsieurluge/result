@@ -253,6 +253,23 @@ final class CombinedTest extends TestCase
     /**
      * @covers monsieurluge\Result\Result\Combined::flatMap
      */
+    public function testFailedFlatMapOnSuccessesReturnsFailure()
+    {
+        // GIVEN a successes combination
+        $combined = new Combined([ new Success('test'), new Success('ok') ]);
+        // AND a method which returns a Failure
+        $fail = function () { return new Failure(new BaseError('fail', 'qwerty')); };
+
+        // WHEN the action is applied, and the error code is fetched
+        $errorCode = $combined->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the values are as expected
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::flatMap
+     */
     public function testFlatMapIsNotAppliedIfThereIsAtLeastOneFailure()
     {
         // GIVEN a success and failure combination
