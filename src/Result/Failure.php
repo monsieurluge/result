@@ -63,16 +63,6 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $expression): Result
-    {
-        return new self(
-            ($expression)($this->error)
-        );
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function then(Closure $doSomething): Result
     {
         return $this;

@@ -47,25 +47,6 @@ final class SuccessTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Success::mapOnFailure
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureDoesNothing()
-    {
-        // GIVEN a successful result
-        $success = new Success('foo bar');
-
-        // WHEN a "replace error's code" function is provided and mapped on the result's failure
-        // AND the value is requested
-        $value = $success
-            ->mapOnFailure($this->replaceErrorCodeWith('err-666'))
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the initial value has not been altered
-        $this->assertSame('foo bar', $value);
-    }
-
-    /**
      * @covers monsieurluge\Result\Result\Success::then
      */
     public function testThenIsTriggered()
