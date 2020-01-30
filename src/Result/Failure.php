@@ -41,7 +41,7 @@ final class Failure implements Result
      */
     public function flatMap(Closure $doSomething): Result
     {
-        throw new \RuntimeException(sprintf('method %s::%s not implemented', __CLASS__, __FUNCTION__));
+        return $this;
     }
 
     /**
