@@ -100,6 +100,40 @@ final class FailureTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Failure::flatMap
+     */
+    public function testSuccessfulFlatMapOnFailureDoesNotChangeTheResultingValue()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND a method which adds 1000 to an int and returns a Result<int>
+        $add = function (int $initial) { return new Success($initial + 1000); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $value = $failure->flatMap($add)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the value is as expected
+        $this->assertSame('err-1234', $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::flatMap
+     */
+    public function testFailedFlatMapOnFailureDoesNotChangeTheResultingValue()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND a method which returns an Error
+        $fail = function (int $initial) { return new Failure(new BaseError('fail', 'qwerty')); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $errorCode = $failure->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error code is as expected (the initial one)
+        $this->assertSame('err-1234', $errorCode);
+    }
+
+    /**
      * Creates a "counter" object who exposes the following methods:
      *  - increment: () -> void
      *  - total: () -> int

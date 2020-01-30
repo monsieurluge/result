@@ -36,6 +36,14 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
+    public function flatMap(Closure $doSomething): Result
+    {
+        return $this->and()->flatMap($doSomething);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return $this->and()->getValueOrExecOnFailure($expression);

@@ -39,6 +39,14 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
+    public function flatMap(Closure $doSomething): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getValueOrExecOnFailure(Closure $expression)
     {
         return ($expression)($this->error);

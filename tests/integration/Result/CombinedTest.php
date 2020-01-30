@@ -232,6 +232,64 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Combined::flatMap
+     */
+    public function testSuccessfulFlatMapOnSuccessesChangesTheResultingValue()
+    {
+        // GIVEN a successes combination
+        $combined = new Combined([ new Success('test'), new Success('ok') ]);
+        // AND a method which contatenates the texts
+        $concatenate = function (array $results) {
+            return new Success(sprintf('%s %s', $results[0], $results[1]));
+        };
+
+        // WHEN the action is applied, and the values are fetched
+        $values = $combined->flatMap($concatenate)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the values are as expected
+        $this->assertSame('test ok', $values);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::flatMap
+     */
+    public function testFailedFlatMapOnSuccessesReturnsFailure()
+    {
+        // GIVEN a successes combination
+        $combined = new Combined([ new Success('test'), new Success('ok') ]);
+        // AND a method which returns a Failure
+        $fail = function () { return new Failure(new BaseError('fail', 'qwerty')); };
+
+        // WHEN the action is applied, and the error code is fetched
+        $errorCode = $combined->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the values are as expected
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::flatMap
+     */
+    public function testFlatMapIsNotAppliedIfThereIsAtLeastOneFailure()
+    {
+        // GIVEN a success and failure combination
+        $combined = new Combined([
+            new Success('test'),
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+        ]);
+        // AND a method which returns an int
+        $concatenate = function (array $results) { return new Success(666); };
+
+        // WHEN the action is called, and the error code is fetched
+        $errorCode = $combined->flatMap($concatenate)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error code is as expected
+        $this->assertSame('err-1234', $errorCode);
+    }
+
+    /**
      * Returns a function which concatenates an array of text.
      *
      * @return Closure the function as follows: string[] -> string

@@ -20,6 +20,19 @@ interface Result
     public function else(Closure $doSomethingWithError): Result;
 
     /**
+     * Calls the action on the successful result's value.
+     * The action MUST return a Result.
+     * The action SHOULD return a Result<T>
+     *
+     * <code>flatMap: (<T> -> Result<T>) -> Result<T></code>
+     *
+     * @param Closure $doSomething the action as follows: <T> -> Result<T>
+     *
+     * @return Result a Result<T>
+     */
+    public function flatMap(Closure $doSomething): Result;
+
+    /**
      * Returns the result's value if it succeeded or the expression's return value
      *   if it is a failure. The failure's error will be provided to the expression.
      *
