@@ -99,6 +99,23 @@ final class SuccessTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Success::flatMap
+     */
+    public function testSuccessfulFlatMapOnSuccessChangesTheResultingValue()
+    {
+        // GIVEN a successful result
+        $success = new Success(1234);
+        // AND a method which adds 1000 to an int and returns a Result<int>
+        $add = function (int $initial) { return new Success($initial + 1000); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $value = $success->flatMap($add)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the value is as expected
+        $this->assertSame(2234, $value);
+    }
+
+    /**
      * Creates a "counter" object who exposes the following methods:
      *  - increment: () -> void
      *  - total: () -> int
