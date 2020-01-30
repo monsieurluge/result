@@ -117,6 +117,23 @@ final class FailureTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Failure::flatMap
+     */
+    public function testFailedFlatMapOnFailureDoesNotChangeTheResultingValue()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND a method which returns an Error
+        $fail = function (int $initial) { return new Failure(new BaseError('fail', 'qwerty')); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $errorCode = $failure->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error code is as expected (the initial one)
+        $this->assertSame('err-1234', $errorCode);
+    }
+
+    /**
      * Creates a "counter" object who exposes the following methods:
      *  - increment: () -> void
      *  - total: () -> int
