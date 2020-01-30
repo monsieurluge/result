@@ -232,6 +232,25 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Combined::flatMap
+     */
+    public function testSuccessfulFlatMapOnSuccessesChangesTheResultingValue()
+    {
+        // GIVEN a successes combination
+        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
+        // AND a method which converts the texts to their uppercase version
+        $toUppercase = function (array $results) {
+            return new Combined([ strtoupper($results[0]), strtoupper($results[1]) ]);
+        };
+
+        // WHEN the action is applied, and the values are fetched
+        $values = $combined->flatMap($toUppercase)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the values are as expected
+        $this->assertSame([ 'TEST', 'OK' ], $values);
+    }
+
+    /**
      * Returns a function which concatenates an array of text.
      *
      * @return Closure the function as follows: string[] -> string
