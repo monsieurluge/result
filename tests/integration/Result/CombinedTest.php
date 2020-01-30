@@ -251,6 +251,28 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Combined::flatMap
+     */
+    public function testFlatMapIsNotAppliedIfThereIsAtLeastOneFailure()
+    {
+        // GIVEN a success and failure combination
+        $combined = new Combined([
+            new Success('test'),
+            new Failure(
+                new BaseError('err-1234', 'failure')
+            ),
+        ]);
+        // AND a method which returns an int
+        $concatenate = function (array $results) { return new Success(666); };
+
+        // WHEN the action is called, and the error code is fetched
+        $errorCode = $combined->flatMap($concatenate)->getValueOrExecOnFailure($this->extractErrorCode());
+
+        // THEN the error code is as expected
+        $this->assertSame('err-1234', $errorCode);
+    }
+
+    /**
      * Returns a function which concatenates an array of text.
      *
      * @return Closure the function as follows: string[] -> string
