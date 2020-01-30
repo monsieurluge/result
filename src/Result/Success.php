@@ -62,14 +62,6 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $mutateError): Result
-    {
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function then(Closure $doSomething): Result
     {
         return ($doSomething)($this->value);

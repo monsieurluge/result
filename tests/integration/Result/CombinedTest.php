@@ -99,53 +99,6 @@ final class CombinedTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::mapOnFailure
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureWithSuccessesDoesNothing()
-    {
-        // GIVEN combined successes
-        $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
-
-        // WHEN a "append to error's code" function is provided and mapped on the result's failure
-        // AND the value is requested
-        $value = $combined
-            ->mapOnFailure($this->appendToErrorCode(' KO'))
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is an array containing the successes values, order unchanged
-        $this->assertSame([ 'test', 'ok', '!!' ], $value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Combined::mapOnFailure
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureWithSuccessesAndFailuresChangesTheFirstError()
-    {
-        // GIVEN combined success and failure
-        $combined = new Combined([
-            new Success('test'),
-            new Failure(
-                new BaseError('err-1234', 'failure one')
-            ),
-            new Success('!!'),
-            new Failure(
-                new BaseError('err-4567', 'failure two')
-            )
-        ]);
-
-        // WHEN a "append to error's code" function is provided and mapped on the result's failure
-        // AND the value is requested
-        $value = $combined
-            ->mapOnFailure($this->appendToErrorCode(' KO'))
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the value is the extended error's code
-        $this->assertSame('err-1234 KO', $value);
-    }
-
-    /**
      * @covers monsieurluge\Result\Result\Combined::then
      */
     public function testSuccessesTriggersTheThenAction()

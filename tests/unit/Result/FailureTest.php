@@ -47,25 +47,6 @@ final class FailureTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Failure::mapOnFailure
-     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureChangesTheError()
-    {
-        // GIVEN a failed result
-        $failure = new Failure(new BaseError('err-1234', 'failure'));
-
-        // WHEN a "replace error's code" function is provided and mapped on the result's failure
-        // AND the value is requested
-        $code = $failure
-            ->mapOnFailure($this->replaceErrorCodeWith('err-666'))
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the code is as expected
-        $this->assertSame('err-666', $code);
-    }
-
-    /**
      * @covers monsieurluge\Result\Result\Failure::then
      */
     public function testThenIsNotTriggered()

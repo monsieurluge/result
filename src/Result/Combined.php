@@ -60,14 +60,6 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $mutateError): Result
-    {
-        return $this->and()->mapOnFailure($mutateError);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function then(Closure $doSomething): Result
     {
         return $this->and()->then($doSomething);

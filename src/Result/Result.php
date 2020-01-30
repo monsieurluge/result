@@ -56,17 +56,6 @@ interface Result
     public function map(Closure $mutate): Result;
 
     /**
-     * Maps the failure's error to the mutation function and returns a new failure.
-     *
-     * <code>mapOnFailure: (Error -> Error) -> Result</code>
-     *
-     * @param Closure $mutateError the mutation as follows: Error -> Error
-     *
-     * @return Result a Result&lt;T&gt;
-     */
-    public function mapOnFailure(Closure $mutateError): Result;
-
-    /**
      * Calls the action on the successful result's value.
      * The action MUST return a Result.
      * The action SHOULD return a Result&lt;T&gt;
