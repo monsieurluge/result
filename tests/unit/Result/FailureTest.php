@@ -100,7 +100,7 @@ final class FailureTest extends TestCase
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Success::flatMap
+     * @covers monsieurluge\Result\Result\Failure::flatMap
      */
     public function testSuccessfulFlatMapOnFailureDoesNotChangeTheResultingValue()
     {
