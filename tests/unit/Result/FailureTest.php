@@ -13,7 +13,7 @@ final class FailureTest extends TestCase
 {
 
     /**
-     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Failure::getOr
      */
     public function testGetTheError()
     {
@@ -21,7 +21,7 @@ final class FailureTest extends TestCase
         $failure = new Failure(new BaseError('err-1234', 'failure'));
 
         // WHEN the error's code is fetched
-        $code = $failure->getValueOrExecOnFailure($this->extractErrorCode());
+        $code = $failure->getOr($this->extractErrorCode());
 
         // THEN the code is as expected
         $this->assertSame('err-1234', $code);
@@ -29,7 +29,7 @@ final class FailureTest extends TestCase
 
     /**
      * @covers monsieurluge\Result\Result\Failure::map
-     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Failure::getOr
      */
     public function testMapDoesNothing()
     {
@@ -40,7 +40,7 @@ final class FailureTest extends TestCase
         // AND the code is requested
         $code = $failure
             ->map($this->toUppercase())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+            ->getOr($this->extractErrorCode());
 
         // THEN the code is as expected
         $this->assertSame('err-1234', $code);
@@ -91,7 +91,7 @@ final class FailureTest extends TestCase
         $add = function (int $initial) { return new Success($initial + 1000); };
 
         // WHEN the method is applied, and the resulting value is fetched
-        $value = $failure->flatMap($add)->getValueOrExecOnFailure($this->extractErrorCode());
+        $value = $failure->flatMap($add)->getOr($this->extractErrorCode());
 
         // THEN the value is as expected
         $this->assertSame('err-1234', $value);
@@ -108,7 +108,7 @@ final class FailureTest extends TestCase
         $fail = function (int $initial) { return new Failure(new BaseError('fail', 'qwerty')); };
 
         // WHEN the method is applied, and the resulting value is fetched
-        $errorCode = $failure->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+        $errorCode = $failure->flatMap($fail)->getOr($this->extractErrorCode());
 
         // THEN the error code is as expected (the initial one)
         $this->assertSame('err-1234', $errorCode);

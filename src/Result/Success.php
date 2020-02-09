@@ -44,7 +44,7 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
-    public function getValueOrExecOnFailure(Closure $expression)
+    public function getOr(Closure $expression)
     {
         return $this->value;
     }

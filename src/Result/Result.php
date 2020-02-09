@@ -36,13 +36,13 @@ interface Result
      * Returns the result's value if it succeeded or the expression's return value
      *   if it is a failure. The failure's error will be provided to the expression.
      *
-     * <code>getValueOrExecOnFailure: (Error -> &lt;U&gt;) -> &lt;T&gt;|&lt;U&gt;</code>
+     * <code>getOr: (Error -> &lt;U&gt;) -> &lt;T&gt;|&lt;U&gt;</code>
      *
      * @param Closure $expression the expression as follows: Error -> &lt;U&gt;
      *
      * @return mixed either the result's value (&lt;T&gt;) or the expression's return value (&lt;U&gt;)
      */
-    public function getValueOrExecOnFailure(Closure $expression);
+    public function getOr(Closure $expression);
 
     /**
      * Maps the successful result's value to the mutation function and returns a new success.
