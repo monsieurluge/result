@@ -3,7 +3,6 @@
     "type": "library",
     "license": "MIT",
     "description": "Result-oriented objects and context",
-    "version": "1.0.4",
     "authors": [
         {
             "name": "Laurent Vergé",
@@ -16,7 +15,8 @@
     },
     "require-dev": {
         "phpmd/phpmd" : "@stable",
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "*",
+        "phpstan/phpstan": "^0.12.7"
     },
     "autoload": {
         "psr-4": {

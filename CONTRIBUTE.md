@@ -39,8 +39,8 @@ Here are the tweaks:
 The following recommandations are in place:
 
  - PSR1 _basic coding standard_
- - PSR2 _coding style guide_
  - PSR4 _autoloading standard_
+ - PSR12 _coding style guide_
 
 ### Tests
 

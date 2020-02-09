@@ -10,18 +10,11 @@ use monsieurluge\Result\Error\Error;
  */
 final class BaseError implements Error
 {
-
     /** @var string **/
     private $code;
     /** @var string **/
     private $message;
 
-    /**
-     * @codeCoverageIgnore
-     *
-     * @param string $code
-     * @param string $message
-     */
     public function __construct(string $code, string $message)
     {
         $this->code    = $code;
@@ -43,5 +36,4 @@ final class BaseError implements Error
     {
         return $this->message;
     }
-
 }

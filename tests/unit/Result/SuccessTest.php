@@ -5,7 +5,7 @@ namespace tests\unit\Result;
 use Closure;
 use monsieurluge\Result\Error\BaseError;
 use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\Result;
+use monsieurluge\Result\Result\Failure;
 use monsieurluge\Result\Result\Success;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +13,7 @@ final class SuccessTest extends TestCase
 {
 
     /**
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Success::getOr
      */
     public function testGetTheValue()
     {
@@ -21,7 +21,7 @@ final class SuccessTest extends TestCase
         $success = new Success('foo bar');
 
         // WHEN the value is requested
-        $value = $success->getValueOrExecOnFailure($this->extractErrorCode());
+        $value = $success->getOr($this->extractErrorCode());
 
         // THEN the value is the one used to create the result object
         $this->assertSame('foo bar', $value);
@@ -29,7 +29,7 @@ final class SuccessTest extends TestCase
 
     /**
      * @covers monsieurluge\Result\Result\Success::map
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Success::getOr
      */
     public function testMapChangeTheResultValue()
     {
@@ -40,29 +40,10 @@ final class SuccessTest extends TestCase
         // AND the value is requested
         $value = $success
             ->map($this->toUppercase())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+            ->getOr($this->extractErrorCode());
 
         // THEN the value is the uppercase version of the original one
         $this->assertSame('FOO BAR', $value);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Success::mapOnFailure
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureDoesNothing()
-    {
-        // GIVEN a successful result
-        $success = new Success('foo bar');
-
-        // WHEN a "replace error's code" function is provided and mapped on the result's failure
-        // AND the value is requested
-        $value = $success
-            ->mapOnFailure($this->replaceErrorCodeWith('err-666'))
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the initial value has not been altered
-        $this->assertSame('foo bar', $value);
     }
 
     /**
@@ -76,10 +57,47 @@ final class SuccessTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $success->then(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
+        $success->then(function () use ($counter) { $counter->increment(); });
 
         // THEN the counter object has been called once
         $this->assertSame(1, $counter->total());
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::then
+     */
+    public function testThenDoesNotChangeTheResult()
+    {
+        // GIVEN a successful result
+        $success = new Success('foo bar');
+        // AND an action which appends "OK" to a text
+        $append = function (string $text) { return sprintf('OK %s', $text); };
+
+        // WHEN an action is provided and the resulting value is fetched
+        $value = $success->then($append)->getOr($this->extractErrorCode());
+
+        // THEN the value is the same as the origin
+        $this->assertSame('foo bar', $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::then
+     */
+    public function testThenCanInteractWithTheResultValue()
+    {
+        // GIVEN a successful result, which is a Counter object startig at 0
+        $success = new Success($this->createCounter());
+        // AND an action which increments a counter
+        $incrementTwoTimes = function ($counter) { $counter->increment(); $counter->increment(); };
+
+        // WHEN an action is provided and the total is fetched
+        $total = $success
+            ->then($incrementTwoTimes)
+            ->getOr($this->extractErrorCode())
+            ->total();
+
+        // THEN the total is as expected
+        $this->assertSame(2, $total);
     }
 
     /**
@@ -97,6 +115,73 @@ final class SuccessTest extends TestCase
 
         // THEN the counter object has not been called
         $this->assertSame(0, $counter->total());
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::flatMap
+     */
+    public function testSuccessfulFlatMapOnSuccessChangesTheResultingValue()
+    {
+        // GIVEN a successful result
+        $success = new Success(1234);
+        // AND a method which adds 1000 to an int and returns a Result<int>
+        $add = function (int $initial) { return new Success($initial + 1000); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $value = $success->flatMap($add)->getOr($this->extractErrorCode());
+
+        // THEN the value is as expected
+        $this->assertSame(2234, $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::flatMap
+     */
+    public function testFailedFlatMapOnSuccessChangesTheResultingValue()
+    {
+        // GIVEN a successful result
+        $success = new Success(1234);
+        // AND a method which returns a failure
+        $fail = function (int $initial) { return new Failure(new BaseError('fail', sprintf('was %s', $initial))); };
+
+        // WHEN the method is applied, and the resulting error is fetched
+        $errorCode = $success->flatMap($fail)->getOr($this->extractErrorCode());
+
+        // THEN the error is as expected
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::join
+     */
+    public function testCanJoinSuccesses()
+    {
+        // GIVEN two successful results
+        $success1 = new Success(666);
+        $success2 = new Success(333);
+
+        // WHEN the results are combined and the resulting value is fetched
+        $value = $success1->join($success2)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected
+        $this->assertSame([ 666, 333 ], $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::join
+     */
+    public function testCanJoinSuccessAndFailure()
+    {
+        // GIVEN one successful result
+        $success = new Success(666);
+        // AND a failed one
+        $failure = new Failure(new BaseError('fail', 'failure'));
+
+        // WHEN the results are combined and the resulting value is fetched
+        $errorCode = $success->join($failure)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected
+        $this->assertSame('fail', $errorCode);
     }
 
     /**

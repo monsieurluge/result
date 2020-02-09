@@ -12,15 +12,9 @@ use monsieurluge\Result\Result\Result;
  */
 final class Failure implements Result
 {
-
     /** @var Error **/
     private $error;
 
-    /**
-     * @codeCoverageIgnore
-     *
-     * @param Error $error
-     */
     public function __construct(Error $error)
     {
         $this->error = $error;
@@ -39,9 +33,25 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
-    public function getValueOrExecOnFailure(Closure $expression)
+    public function flatMap(Closure $doSomething): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOr(Closure $expression)
     {
         return ($expression)($this->error);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function join(Result $another): Result
+    {
+        return $this;
     }
 
     /**
@@ -55,19 +65,8 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
-    public function mapOnFailure(Closure $expression): Result
-    {
-        return new self(
-            ($expression)($this->error)
-        );
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function then(Closure $doSomething): Result
     {
         return $this;
     }
-
 }

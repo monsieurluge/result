@@ -13,7 +13,7 @@ final class FailureTest extends TestCase
 {
 
     /**
-     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Failure::getOr
      */
     public function testGetTheError()
     {
@@ -21,7 +21,7 @@ final class FailureTest extends TestCase
         $failure = new Failure(new BaseError('err-1234', 'failure'));
 
         // WHEN the error's code is fetched
-        $code = $failure->getValueOrExecOnFailure($this->extractErrorCode());
+        $code = $failure->getOr($this->extractErrorCode());
 
         // THEN the code is as expected
         $this->assertSame('err-1234', $code);
@@ -29,7 +29,7 @@ final class FailureTest extends TestCase
 
     /**
      * @covers monsieurluge\Result\Result\Failure::map
-     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Failure::getOr
      */
     public function testMapDoesNothing()
     {
@@ -40,29 +40,10 @@ final class FailureTest extends TestCase
         // AND the code is requested
         $code = $failure
             ->map($this->toUppercase())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+            ->getOr($this->extractErrorCode());
 
         // THEN the code is as expected
         $this->assertSame('err-1234', $code);
-    }
-
-    /**
-     * @covers monsieurluge\Result\Result\Failure::mapOnFailure
-     * @covers monsieurluge\Result\Result\Failure::getValueOrExecOnFailure
-     */
-    public function testMapOnFailureChangesTheError()
-    {
-        // GIVEN a failed result
-        $failure = new Failure(new BaseError('err-1234', 'failure'));
-
-        // WHEN a "replace error's code" function is provided and mapped on the result's failure
-        // AND the value is requested
-        $code = $failure
-            ->mapOnFailure($this->replaceErrorCodeWith('err-666'))
-            ->getValueOrExecOnFailure($this->extractErrorCode());
-
-        // THEN the code is as expected
-        $this->assertSame('err-666', $code);
     }
 
     /**
@@ -97,6 +78,73 @@ final class FailureTest extends TestCase
 
         // THEN the counter object has been called once
         $this->assertSame(1, $counter->total());
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::flatMap
+     */
+    public function testSuccessfulFlatMapOnFailureDoesNotChangeTheResultingValue()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND a method which adds 1000 to an int and returns a Result<int>
+        $add = function (int $initial) { return new Success($initial + 1000); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $value = $failure->flatMap($add)->getOr($this->extractErrorCode());
+
+        // THEN the value is as expected
+        $this->assertSame('err-1234', $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::flatMap
+     */
+    public function testFailedFlatMapOnFailureDoesNotChangeTheResultingValue()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('err-1234', 'failure'));
+        // AND a method which returns an Error
+        $fail = function (int $initial) { return new Failure(new BaseError('fail', 'qwerty')); };
+
+        // WHEN the method is applied, and the resulting value is fetched
+        $errorCode = $failure->flatMap($fail)->getOr($this->extractErrorCode());
+
+        // THEN the error code is as expected (the initial one)
+        $this->assertSame('err-1234', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::join
+     */
+    public function testCanJoinFailures()
+    {
+        // GIVEN two failed results
+        $failure1 = new Failure(new BaseError('fail-1', 'failure 1'));
+        $failure2 = new Failure(new BaseError('fail-2', 'failure 2'));
+
+        // WHEN the results are combined and the resulting value is fetched
+        $errorCode = $failure1->join($failure2)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected -> the first failure error code
+        $this->assertSame('fail-1', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::join
+     */
+    public function testCanJoinFailureAndSuccess()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('fail', 'failure'));
+        // AND a successful result
+        $success = new Success(666);
+
+        // WHEN the results are combined and the resulting value is fetched
+        $errorCode = $failure->join($success)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected -> the failure error code
+        $this->assertSame('fail', $errorCode);
     }
 
     /**
