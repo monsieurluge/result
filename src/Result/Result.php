@@ -45,6 +45,15 @@ interface Result
     public function getOr(Closure $expression);
 
     /**
+     * Combines the current result with the provided one.
+     *
+     * @param Result $another a Result<U>
+     *
+     * @return Result a Result<T,U>
+     */
+    public function join(Result $another): Result;
+
+    /**
      * Maps the successful result's value to the mutation function and returns a new success.
      *
      * <code>map: (&lt;T&gt; -> &lt;U&gt;) -> Result&lt;U&gt;</code>
