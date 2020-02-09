@@ -4,156 +4,264 @@ The goal of the Result library is to say goodbye to the `if` and `try catch` con
 
 The code also becomes more declarative and object oriented.
 
-## Objects types
+## Examples
 
-### Error
+### Using a repository
 
-The Error object helps to identify the error thrown in order to trace it efficiently.
+Context: We want to send a message to an user, only known by his ID.
 
-Example, using an `EmployeeNotFound` error thrown when the employee was not found in the corresponding storage:
+#### As usually seen
 
 ```php
 <?php
 
-namespace App\Error\Storage;
+// ---------------------------------------- interfaces
 
-use App\Domain\Employee\UniqueId;
-use monsieurluge\Result\Error\Error;
-
-final class EmployeeNotFound implements Error
+interface User
 {
-    private $identifier;
+    public function sendMessage(string $text): void;
+}
 
-    public function __construct(UniqueId $identifier)
+interface UserRepository
+{
+    public function userById(int $uuid): User|null;
+}
+
+// ---------------------------------------- implementation
+
+$userRepository = new MySqlUserRepository();
+
+$user = $userRepository->userById(1234);
+
+if (true === is_null($user)) {
+    // error handling
+} else {
+    $user->sendMessage('Hi!');
+}
+```
+
+#### With Result
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function sendMessage(string $text): void;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): Result<User>;
+}
+
+// ---------------------------------------- implementation
+
+$userRepository = new MySqlUserRepository();
+
+$userRepository
+    ->userById(1234)
+    ->then(function (User $user) {
+        $user->sendMessage('Hi!');
+    })
+    ->else(function (Error $error) {
+        // error handling
+    });
+```
+
+### Within a HTTP controller
+
+Context: We want to fetch an user name and return it using an HTTP#200 response if the user is known, or via an HTTP#404 if the user is unknown.
+
+#### As usually seen
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function name(): string;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): User|null;
+}
+
+// ---------------------------------------- implementation
+
+class UserNameController
+{
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository)
     {
-        $this->identifier = $identifier;
+        $this->userRepository = $userRepository;
     }
 
-    public function code(): string
-    {
-        return 'emp-42'; // a dedicated and unique error code
-    }
+    public function handle(int $uuid): Response {
+        $user = $this->userRepository->userById($uuid);
 
-    public function message(): string
-    {
-        return sprintf(
-            'the employee identified by "%s" does not exist',
-            $this->identifier->toString()
-        );
+        if (true === is_null($user)) {
+            $response = new Response(
+                sprintf('the user %s does not exist', $uuid),
+                404
+            );
+        } else {
+            $response = new Response($user->name(), 200);
+        }
+
+        return $response;
     }
 }
 ```
 
+#### With Result
+
 ```php
 <?php
 
-namespace App\Repository\Doctrine; // or any storage type needed
+// ---------------------------------------- interfaces
 
-use App\Domain\Employee\UniqueId;
-use App\Repository\UserRepository;
-use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\Failure;
-use monsieurluge\Result\Result\Success;
-
-final class SqlUserRepository implements UserRepository
+interface User
 {
-    // property declarations, constructor, etc
+    public function name(): string;
+}
 
-    public function user(UniqueId $identifier): Result // a Result<User>
+interface UserRepository
+{
+    public function userById(int $uuid): Result<User>;
+}
+
+// ---------------------------------------- implementation
+
+class UserNameController
+{
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository)
     {
-        $row = $this->storage->getUserById($identifier->toString());
+        $this->userRepository = $userRepository;
+    }
 
-        return is_null($row)
-            ? new Failure(new UserNotFound($identifier))
-            : new Success($this->userFactory->fromRawSqlData($row));
+    public function handle(int $uuid): Response {
+        return $this->userRepository
+            ->userById($uuid)
+            ->map(function (User $user) {
+                return new Response($user->name(), 200);
+            })
+            ->getOr(function (Error $error) use ($uuid) {
+                return new Response(
+                    sprintf('the user %s does not exist', $uuid),
+                    404
+                );
+            });
     }
 }
 ```
 
-### Result
+### How to manage multiple uncertainties ?
 
-The Result objects help to write declarative code and to throw away the usuals `if (is_null($object))` and `try catch` control structures.
+Context: We want to add an user to a group. But only the corresponding IDs are provided. Both may not exist.
 
-So, the Exceptions are only used for what they are originally intended for: throw an alert because of a exceptional situation that cannot be handled normally.
-
-#### Success
-
-A Success always holds the desired result (ex: Result<User>) and allow the developer to act on this result via the _map_ and _then_ methods.
-
-The _map_ one does not affect the result type, whereas the _then_ method returned value must be either a success or a failure.
-
-#### Failure
-
-A Failure holds the first encountered error, if any. The Result methods _mapOnFailure_ and _else_ allows to manipulate the error in order to add details or fire some events.
-
-todo
-
-#### Combined
-
-todo
-
-## Complete examples
-
-### Send a HTTP #200 or #404 response via a controller
+#### As usually seen
 
 ```php
 <?php
 
-namespace App\Domain;
+// ---------------------------------------- interfaces
 
-use App\Services\Output\Output;
-
-interface Product
+interface User
 {
-    public function print(Output $output): void;
+    public function name(): string;
+}
+
+interface Group
+{
+    public function add(User $user): void;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): User|null;
+}
+
+interface GroupRepository
+{
+    public function groupById(int $uuid): Group|null;
+}
+
+// ---------------------------------------- implementation
+
+$group = $this->groupRepository->groupById($groupUuid);
+$user  = $this->userRepository->userById($userUuid);
+
+if (true === is_null($user) || true === is_null($user)) {
+    // error handling
+} else {
+    $group->add($user);
 }
 ```
 
+#### With Result
+
 ```php
 <?php
 
-namespace App\Repository;
+// ---------------------------------------- interfaces
 
-use monsieurluge\Result\Result\Result;
-use App\Domain\Product as DomainProduct;
-
-interface Product
+interface User
 {
-    public function productById(int $identifier): Result; // Result<DomainProduct>
+    public function name(): string;
 }
+
+interface Group
+{
+    public function add(User $user): void;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): Result<User>;
+}
+
+interface GroupRepository
+{
+    public function groupById(int $uuid): Result<Group>;
+}
+
+// ---------------------------------------- implementation
+
+(new Combined([
+    $this->groupRepository->groupById($groupUuid),
+    $this->userRepository->userById($userUuid),
+]))
+    ->then(function (Group $group, User $user) {
+        $group->add($user);
+    })
+    ->else(function (Error $error) {
+        /** error handling */
+    });
 ```
 
+or
+
 ```php
 <?php
 
-namespace App\Http\Controller\API;
+// ---------------------------------------- implementation
 
-use monsieurluge\Result\Error\BaseError;
-use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\Result;
-use monsieurluge\Result\Result\Success;
-use App\Domain\User;
-use App\Repository\Product as ProductRepository;
-use Symfony\Component\HttpFoundation\Response;
-
-class ProductCardInformations
-{
-    private $repository;
-    private $view;
-
-    public function __construct(ProductRepository $repository, ProductCard $view)
-    {
-        $this->repository = $repository;
-        $this->view       = $view;
-    }
-
-    public function process(Request $request, Response $response): void
-    {
-        $this->repository
-            ->productById($request->productId())
-            ->then(function (Product $product) { $product->print($this->view); })
-
-            // todo
-    }
-}
+$this->groupRepository
+    ->groupById($groupUuid)
+    ->join($this->userRepository->userById($userUuid))
+    ->then(function (Group $group, User $user) {
+        $group->add($user);
+    })
+    ->else(function (Error $error) {
+        /** error handling */
+    });
 ```
