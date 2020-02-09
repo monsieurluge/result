@@ -66,12 +66,10 @@ interface Result
 
     /**
      * Calls the action on the successful result's value.
-     * The action MUST return a Result.
-     * The action SHOULD return a Result<T>
      *
-     * <code>then: (<T> -> Result<T>) -> Result<T></code>
+     * <code>then: (<T> -> void) -> Result<T></code>
      *
-     * @param Closure $doSomething the action as follows: <T> -> Result<T>
+     * @param Closure $doSomething the action as follows: <T> -> void
      *
      * @return Result a Result<T>
      */
