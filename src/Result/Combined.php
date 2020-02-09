@@ -36,7 +36,7 @@ final class Combined implements Result
      */
     public function flatMap(Closure $doSomething): Result
     {
-        return $this->and()->flatMap($doSomething);
+        return $this->and()->flatMap($this->provideValuesTo($doSomething));
     }
 
     /**
@@ -60,7 +60,7 @@ final class Combined implements Result
      */
     public function map(Closure $mutate): Result
     {
-        return $this->and()->map($mutate);
+        return $this->and()->map($this->provideValuesTo($mutate));
     }
 
     /**
@@ -68,7 +68,10 @@ final class Combined implements Result
      */
     public function then(Closure $doSomething): Result
     {
-        return $this->and()->then($doSomething);
+        $this->and()->then($this->provideValuesTo($doSomething));
+
+        return $this;
+
     }
 
     /**
@@ -89,7 +92,21 @@ final class Combined implements Result
     private function combineSuccesses(): Closure
     {
         return function (Result $carry, Result $item): Result {
-            return $carry->then($this->mergeValues($item));
+            return $carry->flatMap($this->mergeValues($item));
+        };
+    }
+
+    /**
+     * Returns a function which provides the resulting (successful) values to the target method.
+     *
+     * @param Closure $targetMethod
+     *
+     * @return Closure
+     */
+    private function provideValuesTo(Closure $targetMethod): Closure
+    {
+        return function (array $values) use ($targetMethod) {
+            return call_user_func_array($targetMethod, $values);
         };
     }
 

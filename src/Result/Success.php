@@ -73,6 +73,8 @@ final class Success implements Result
      */
     public function then(Closure $doSomething): Result
     {
-        return ($doSomething)($this->value);
+        ($doSomething)($this->value);
+
+        return $this;
     }
 }
