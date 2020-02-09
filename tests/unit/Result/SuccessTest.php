@@ -57,10 +57,47 @@ final class SuccessTest extends TestCase
         $counter = $this->createCounter();
 
         // WHEN an action is provided
-        $success->then(function () use ($counter) { $counter->increment(); return new Success('baz baz'); });
+        $success->then(function () use ($counter) { $counter->increment(); });
 
         // THEN the counter object has been called once
         $this->assertSame(1, $counter->total());
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::then
+     */
+    public function testThenDoesNotChangeTheResult()
+    {
+        // GIVEN a successful result
+        $success = new Success('foo bar');
+        // AND an action which appends "OK" to a text
+        $append = function (string $text) { return sprintf('OK %s', $text); };
+
+        // WHEN an action is provided and the resulting value is fetched
+        $value = $success->then($append)->getOr($this->extractErrorCode());
+
+        // THEN the value is the same as the origin
+        $this->assertSame('foo bar', $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::then
+     */
+    public function testThenCanInteractWithTheResultValue()
+    {
+        // GIVEN a successful result, which is a Counter object startig at 0
+        $success = new Success($this->createCounter());
+        // AND an action which increments a counter
+        $incrementTwoTimes = function ($counter) { $counter->increment(); $counter->increment(); };
+
+        // WHEN an action is provided and the total is fetched
+        $total = $success
+            ->then($incrementTwoTimes)
+            ->getOr($this->extractErrorCode())
+            ->total();
+
+        // THEN the total is as expected
+        $this->assertSame(2, $total);
     }
 
     /**

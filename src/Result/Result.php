@@ -24,7 +24,7 @@ interface Result
      * The action MUST return a Result.
      * The action SHOULD return a Result<T>
      *
-     * <code>flatMap: (<T> -> Result<T>) -> Result<T></code>
+     * <code>flatMap: (&lt;T&gt; -> Result&lt;T&gt;) -> Result&lt;T&gt;</code>
      *
      * @param Closure $doSomething the action as follows: <T> -> Result<T>
      *
@@ -36,7 +36,7 @@ interface Result
      * Returns the result's value if it succeeded or the expression's return value
      *   if it is a failure. The failure's error will be provided to the expression.
      *
-     * <code>getOr: (Error -> <U>) -> <T>|<U></code>
+     * <code>getOr: (Error -> &lt;U&gt;) -> &lt;T&gt;|&lt;U&gt;</code>
      *
      * @param Closure $expression the expression as follows: Error -> <U>
      *
@@ -56,7 +56,7 @@ interface Result
     /**
      * Maps the successful result's value to the mutation function and returns a new success.
      *
-     * <code>map: (<T> -> <U>) -> Result<U></code>
+     * <code>map: (&lt;T&gt; -> &lt;U&gt;) -> Result&lt;U&gt;</code>
      *
      * @param Closure $mutate the mutation as follows: <T> -> <U>
      *
@@ -66,12 +66,10 @@ interface Result
 
     /**
      * Calls the action on the successful result's value.
-     * The action MUST return a Result.
-     * The action SHOULD return a Result<T>
      *
-     * <code>then: (<T> -> Result<T>) -> Result<T></code>
+     * <code>then: (&lt;T&gt; -> void) -> Result&lt;T&gt;</code>
      *
-     * @param Closure $doSomething the action as follows: <T> -> Result<T>
+     * @param Closure $doSomething the action as follows: <T> -> void
      *
      * @return Result a Result<T>
      */

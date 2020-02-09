@@ -59,12 +59,13 @@ final class CombinedTest extends TestCase
     {
         // GIVEN combined successes
         $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
+        // AND a function which concatenates tree texts
+        $concatenate = function (string $text1, string $text2, string $text3) {
+            return sprintf('%s %s %s', $text1, $text2, $text3);
+        };
 
-        // WHEN the result values are requested to be concatenated
-        // AND the resulting value is requested
-        $value = $combined
-            ->map($this->concatenateTexts())
-            ->getOr($this->extractErrorCode());
+        // WHEN the result values are requested to be concatenated and the resulting value is fetched
+        $value = $combined->map($concatenate)->getOr($this->extractErrorCode());
 
         // THEN the value is the concatenation of the successes values
         $this->assertSame('test ok !!', $value);
@@ -192,8 +193,8 @@ final class CombinedTest extends TestCase
         // GIVEN a successes combination
         $combined = new Combined([ new Success('test'), new Success('ok') ]);
         // AND a method which contatenates the texts
-        $concatenate = function (array $results) {
-            return new Success(sprintf('%s %s', $results[0], $results[1]));
+        $concatenate = function (string $text1, string $text2) {
+            return new Success(sprintf('%s %s', $text1, $text2));
         };
 
         // WHEN the action is applied, and the values are fetched
