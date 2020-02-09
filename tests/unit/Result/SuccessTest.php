@@ -115,6 +115,39 @@ final class SuccessTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Success::join
+     */
+    public function testCanJoinSuccesses()
+    {
+        // GIVEN two successful results
+        $success1 = new Success(666);
+        $success2 = new Success(333);
+
+        // WHEN the results are combined and the resulting value is fetched
+        $value = $success1->join($success2)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected
+        $this->assertSame([ 666, 333 ], $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Success::join
+     */
+    public function testCanJoinSuccessAndFailure()
+    {
+        // GIVEN one successful result
+        $success = new Success(666);
+        // AND a failed one
+        $failure = new Failure(new BaseError('fail', 'failure'));
+
+        // WHEN the results are combined and the resulting value is fetched
+        $errorCode = $success->join($failure)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
      * Creates a "counter" object who exposes the following methods:
      *  - increment: () -> void
      *  - total: () -> int

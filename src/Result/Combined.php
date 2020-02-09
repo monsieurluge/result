@@ -50,6 +50,14 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
+    public function join(Result $another): Result
+    {
+        return new self(array_merge($this->results, [ $another ]));
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function map(Closure $mutate): Result
     {
         return $this->and()->map($mutate);

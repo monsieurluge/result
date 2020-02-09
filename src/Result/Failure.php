@@ -49,6 +49,14 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
+    public function join(Result $another): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function map(Closure $mutate): Result
     {
         return $this;

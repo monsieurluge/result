@@ -3,6 +3,7 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
+use monsieurluge\Result\Result\Combined;
 use monsieurluge\Result\Result\Result;
 
 /**
@@ -44,6 +45,17 @@ final class Success implements Result
     public function getOr(Closure $expression)
     {
         return $this->value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function join(Result $another): Result
+    {
+        return new Combined([
+            new self($this->value),
+            $another,
+        ]);
     }
 
     /**

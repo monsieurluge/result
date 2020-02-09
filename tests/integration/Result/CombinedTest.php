@@ -243,6 +243,74 @@ final class CombinedTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Combined::join
+     */
+    public function testCanJoinCombinedResultsWithSuccess()
+    {
+        // GIVEN a successes combination
+        $combined = new Combined([ new Success(666), new Success(333) ]);
+        // AND another successful result
+        $success = new Success(1);
+
+        // WHEN the results are joined, and the resulting value is fetched
+        $value = $combined->join($success)->getOr($this->extractErrorCode());
+
+        // THEN the value is as expected
+        $this->assertSame([ 666, 333, 1 ], $value);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::join
+     */
+    public function testCanJoinCombinedResultsWithFailure()
+    {
+        // GIVEN a successes combination
+        $combined = new Combined([ new Success(666), new Success(333) ]);
+        // AND another failed result
+        $failure = new Failure(new BaseError('fail', 'failure'));
+
+        // WHEN the results are joined, and the resulting value is fetched
+        $errorCode = $combined->join($failure)->getOr($this->extractErrorCode());
+
+        // THEN the value is as expected -> the failure error code
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::join
+     */
+    public function testCanJoinCombinedSuccessAnfFailureWithSuccess()
+    {
+        // GIVEN a success and failure combination
+        $combined = new Combined([ new Success(666), new Failure(new BaseError('fail', 'failure')) ]);
+        // AND another successful result
+        $success = new Success(1);
+
+        // WHEN the results are joined, and the resulting value is fetched
+        $errorCode = $combined->join($success)->getOr($this->extractErrorCode());
+
+        // THEN the value is as expected -> the first failure error code
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Combined::join
+     */
+    public function testCanJoinCombinedFailureAnfSuccessWithFailure()
+    {
+        // GIVEN a success and failure combination
+        $combined = new Combined([ new Failure(new BaseError('fail-1', 'failure')), new Success(666) ]);
+        // AND another failed result
+        $failure = new Failure(new BaseError('fail-2', 'failure'));
+
+        // WHEN the results are joined, and the resulting value is fetched
+        $errorCode = $combined->join($failure)->getOr($this->extractErrorCode());
+
+        // THEN the value is as expected -> the first failure error code
+        $this->assertSame('fail-1', $errorCode);
+    }
+
+    /**
      * Returns a function which concatenates an array of text.
      *
      * @return Closure the function as follows: string[] -> string
