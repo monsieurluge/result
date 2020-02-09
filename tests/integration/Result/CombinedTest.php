@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 final class CombinedTest extends TestCase
 {
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getOr
      */
     public function testGetTheValueOfSuccessesReturnsCombinedValues()
     {
@@ -21,14 +21,14 @@ final class CombinedTest extends TestCase
         $combined = new Combined([ new Success('test'), new Success('ok'), new Success('!!') ]);
 
         // WHEN the value is requested
-        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
+        $value = $combined->getOr($this->extractErrorCode());
 
         // THEN the value is an array containing the successes values, order unchanged
         $this->assertSame([ 'test', 'ok', '!!' ], $value);
     }
 
     /**
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getOr
      */
     public function testGetTheValueOfSuccessesAndFailuresReturnsTheFirstError()
     {
@@ -45,7 +45,7 @@ final class CombinedTest extends TestCase
         ]);
 
         // WHEN the value is requested
-        $value = $combined->getValueOrExecOnFailure($this->extractErrorCode());
+        $value = $combined->getOr($this->extractErrorCode());
 
         // THEN the value is the failure error's code
         $this->assertSame('err-1234', $value);
@@ -53,7 +53,7 @@ final class CombinedTest extends TestCase
 
     /**
      * @covers monsieurluge\Result\Result\Combined::map
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getOr
      */
     public function testCanMapOnSuccesses()
     {
@@ -64,7 +64,7 @@ final class CombinedTest extends TestCase
         // AND the resulting value is requested
         $value = $combined
             ->map($this->concatenateTexts())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+            ->getOr($this->extractErrorCode());
 
         // THEN the value is the concatenation of the successes values
         $this->assertSame('test ok !!', $value);
@@ -72,7 +72,7 @@ final class CombinedTest extends TestCase
 
     /**
      * @covers monsieurluge\Result\Result\Combined::map
-     * @covers monsieurluge\Result\Result\Combined::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Combined::getOr
      */
     public function testCannotMapWhenThereIsAtLeastOneFailure()
     {
@@ -92,7 +92,7 @@ final class CombinedTest extends TestCase
         // AND the value is requested
         $value = $combined
             ->map($this->concatenateTexts())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+            ->getOr($this->extractErrorCode());
 
         // THEN the value is the failure error's code
         $this->assertSame('err-1234', $value);
@@ -197,7 +197,7 @@ final class CombinedTest extends TestCase
         };
 
         // WHEN the action is applied, and the values are fetched
-        $values = $combined->flatMap($concatenate)->getValueOrExecOnFailure($this->extractErrorCode());
+        $values = $combined->flatMap($concatenate)->getOr($this->extractErrorCode());
 
         // THEN the values are as expected
         $this->assertSame('test ok', $values);
@@ -214,7 +214,7 @@ final class CombinedTest extends TestCase
         $fail = function () { return new Failure(new BaseError('fail', 'qwerty')); };
 
         // WHEN the action is applied, and the error code is fetched
-        $errorCode = $combined->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+        $errorCode = $combined->flatMap($fail)->getOr($this->extractErrorCode());
 
         // THEN the values are as expected
         $this->assertSame('fail', $errorCode);
@@ -236,7 +236,7 @@ final class CombinedTest extends TestCase
         $concatenate = function (array $results) { return new Success(666); };
 
         // WHEN the action is called, and the error code is fetched
-        $errorCode = $combined->flatMap($concatenate)->getValueOrExecOnFailure($this->extractErrorCode());
+        $errorCode = $combined->flatMap($concatenate)->getOr($this->extractErrorCode());
 
         // THEN the error code is as expected
         $this->assertSame('err-1234', $errorCode);

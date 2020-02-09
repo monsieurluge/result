@@ -47,7 +47,7 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
-    public function getValueOrExecOnFailure(Closure $expression)
+    public function getOr(Closure $expression)
     {
         return ($expression)($this->error);
     }

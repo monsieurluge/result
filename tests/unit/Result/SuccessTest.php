@@ -13,7 +13,7 @@ final class SuccessTest extends TestCase
 {
 
     /**
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Success::getOr
      */
     public function testGetTheValue()
     {
@@ -21,7 +21,7 @@ final class SuccessTest extends TestCase
         $success = new Success('foo bar');
 
         // WHEN the value is requested
-        $value = $success->getValueOrExecOnFailure($this->extractErrorCode());
+        $value = $success->getOr($this->extractErrorCode());
 
         // THEN the value is the one used to create the result object
         $this->assertSame('foo bar', $value);
@@ -29,7 +29,7 @@ final class SuccessTest extends TestCase
 
     /**
      * @covers monsieurluge\Result\Result\Success::map
-     * @covers monsieurluge\Result\Result\Success::getValueOrExecOnFailure
+     * @covers monsieurluge\Result\Result\Success::getOr
      */
     public function testMapChangeTheResultValue()
     {
@@ -40,7 +40,7 @@ final class SuccessTest extends TestCase
         // AND the value is requested
         $value = $success
             ->map($this->toUppercase())
-            ->getValueOrExecOnFailure($this->extractErrorCode());
+            ->getOr($this->extractErrorCode());
 
         // THEN the value is the uppercase version of the original one
         $this->assertSame('FOO BAR', $value);
@@ -91,7 +91,7 @@ final class SuccessTest extends TestCase
         $add = function (int $initial) { return new Success($initial + 1000); };
 
         // WHEN the method is applied, and the resulting value is fetched
-        $value = $success->flatMap($add)->getValueOrExecOnFailure($this->extractErrorCode());
+        $value = $success->flatMap($add)->getOr($this->extractErrorCode());
 
         // THEN the value is as expected
         $this->assertSame(2234, $value);
@@ -108,7 +108,7 @@ final class SuccessTest extends TestCase
         $fail = function (int $initial) { return new Failure(new BaseError('fail', sprintf('was %s', $initial))); };
 
         // WHEN the method is applied, and the resulting error is fetched
-        $errorCode = $success->flatMap($fail)->getValueOrExecOnFailure($this->extractErrorCode());
+        $errorCode = $success->flatMap($fail)->getOr($this->extractErrorCode());
 
         // THEN the error is as expected
         $this->assertSame('fail', $errorCode);

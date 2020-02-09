@@ -44,9 +44,9 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
-    public function getValueOrExecOnFailure(Closure $expression)
+    public function getOr(Closure $expression)
     {
-        return $this->and()->getValueOrExecOnFailure($expression);
+        return $this->and()->getOr($expression);
     }
 
     /**

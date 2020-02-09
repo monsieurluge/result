@@ -184,7 +184,7 @@ class UserController
         return $userRepository
             ->findByName('Homer Simpson')
             ->map($userToResponse)
-            ->getValueOrExecOnFailure($createUserNotFoundResponse);
+            ->getOr($createUserNotFoundResponse);
     }
 }
 ```
