@@ -3,6 +3,7 @@
 namespace monsieurluge\Result\Result;
 
 use Closure;
+use monsieurluge\Result\Result\Combined;
 use monsieurluge\Result\Result\Result;
 
 /**
@@ -11,13 +12,10 @@ use monsieurluge\Result\Result\Result;
  */
 final class Success implements Result
 {
-
     /** @var mixed **/
     private $value;
 
     /**
-     * @codeCoverageIgnore
-     *
      * @param mixed $value
      */
     public function __construct($value)
@@ -52,6 +50,17 @@ final class Success implements Result
     /**
      * @inheritDoc
      */
+    public function join(Result $another): Result
+    {
+        return new Combined([
+            new self($this->value),
+            $another,
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function map(Closure $mutate): Result
     {
         return new self(
@@ -66,5 +75,4 @@ final class Success implements Result
     {
         return ($doSomething)($this->value);
     }
-
 }

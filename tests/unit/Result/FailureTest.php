@@ -115,6 +115,39 @@ final class FailureTest extends TestCase
     }
 
     /**
+     * @covers monsieurluge\Result\Result\Failure::join
+     */
+    public function testCanJoinFailures()
+    {
+        // GIVEN two failed results
+        $failure1 = new Failure(new BaseError('fail-1', 'failure 1'));
+        $failure2 = new Failure(new BaseError('fail-2', 'failure 2'));
+
+        // WHEN the results are combined and the resulting value is fetched
+        $errorCode = $failure1->join($failure2)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected -> the first failure error code
+        $this->assertSame('fail-1', $errorCode);
+    }
+
+    /**
+     * @covers monsieurluge\Result\Result\Failure::join
+     */
+    public function testCanJoinFailureAndSuccess()
+    {
+        // GIVEN a failed result
+        $failure = new Failure(new BaseError('fail', 'failure'));
+        // AND a successful result
+        $success = new Success(666);
+
+        // WHEN the results are combined and the resulting value is fetched
+        $errorCode = $failure->join($success)->getOr($this->extractErrorCode());
+
+        // THEN the resulting value is as expected -> the failure error code
+        $this->assertSame('fail', $errorCode);
+    }
+
+    /**
      * Creates a "counter" object who exposes the following methods:
      *  - increment: () -> void
      *  - total: () -> int

@@ -12,15 +12,9 @@ use monsieurluge\Result\Result\Result;
  */
 final class Failure implements Result
 {
-
     /** @var Error **/
     private $error;
 
-    /**
-     * @codeCoverageIgnore
-     *
-     * @param Error $error
-     */
     public function __construct(Error $error)
     {
         $this->error = $error;
@@ -55,6 +49,14 @@ final class Failure implements Result
     /**
      * @inheritDoc
      */
+    public function join(Result $another): Result
+    {
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function map(Closure $mutate): Result
     {
         return $this;
@@ -67,5 +69,4 @@ final class Failure implements Result
     {
         return $this;
     }
-
 }

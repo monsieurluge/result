@@ -14,8 +14,6 @@ final class Combined implements Result
     private $results;
 
     /**
-     * @codeCoverageIgnore
-     *
      * @param Result[] $results
      */
     public function __construct(array $results)
@@ -52,6 +50,14 @@ final class Combined implements Result
     /**
      * @inheritDoc
      */
+    public function join(Result $another): Result
+    {
+        return new self(array_merge($this->results, [ $another ]));
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function map(Closure $mutate): Result
     {
         return $this->and()->map($mutate);
@@ -67,9 +73,8 @@ final class Combined implements Result
 
     /**
      * Returns the combined values or the first Error encountered.
-     * @codeCoverageIgnore
      *
-     * @return Result either a Result&lt;{x,y,z...}&gt; or an Error
+     * @return Result either a Result<{x,y,z...}> or an Error
      */
     private function and(): Result
     {
