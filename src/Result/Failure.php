@@ -15,11 +15,6 @@ final class Failure implements Result
     /** @var Error **/
     private $error;
 
-    /**
-     * @codeCoverageIgnore
-     *
-     * @param Error $error
-     */
     public function __construct(Error $error)
     {
         $this->error = $error;

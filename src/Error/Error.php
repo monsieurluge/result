@@ -4,7 +4,6 @@ namespace monsieurluge\Result\Error;
 
 interface Error
 {
-
     /**
      * Returns the code.
      *
@@ -18,5 +17,4 @@ interface Error
      * @return string
      */
     public function message(): string;
-
 }

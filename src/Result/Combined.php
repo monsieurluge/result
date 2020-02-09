@@ -14,8 +14,6 @@ final class Combined implements Result
     private $results;
 
     /**
-     * @codeCoverageIgnore
-     *
      * @param Result[] $results
      */
     public function __construct(array $results)
@@ -67,7 +65,6 @@ final class Combined implements Result
 
     /**
      * Returns the combined values or the first Error encountered.
-     * @codeCoverageIgnore
      *
      * @return Result either a Result<{x,y,z...}> or an Error
      */

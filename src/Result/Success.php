@@ -15,8 +15,6 @@ final class Success implements Result
     private $value;
 
     /**
-     * @codeCoverageIgnore
-     *
      * @param mixed $value
      */
     public function __construct($value)
