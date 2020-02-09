@@ -1,190 +1,269 @@
 # Result
 
+![logo](logo.png)
+
 The goal of the Result library is to say goodbye to the `if` and `try catch` control structures when requesting a storage or any object who can return either "nothing" or the desired result.
 
 The code also becomes more declarative and object oriented.
 
-## Objects types
+## Examples
 
-### Action
+### Using a repository
 
-The Action objects allows to interact with the desired result's content without changing its type.
+Context: We want to send a message to an user, only known by his ID.
 
-Example, using a `SendEmail` action based on a `Result<User>`:
-
-```php
-<?php
-
-namespace App\Action;
-
-use monsieurluge\Result\Action\Action;
-
-final class SendEmail implements Action
-{
-    private $mailer; // mail service
-    private $template; // template builder
-
-    [...] // constructor
-
-    public function process($target): void
-    {
-        $mailer->send(
-            [ $target->email()->value() ],
-            $template->content([ 'name' => $target->fullName() ])
-        );
-    }
-}
-```
-
-### Error
-
-The Error object helps to identify the error thrown in order to trace it efficiently.
-
-Example, using a `UserNotFound` error thrown when the user was not found in the storage:
+#### As usually seen
 
 ```php
 <?php
 
-namespace App\Error;
-
-use App\Domain\UserId;
-use monsieurluge\Result\Error\Error;
-
-final class UserNotFound implements Error
-{
-    private $uniqueId;
-
-    public function __construct(UserId $uniqueId)
-    {
-        $this->uniqueId = $uniqueId;
-    }
-
-    public function code(): string
-    {
-        return 'sto-42'; // a dedicated and unique error code
-    }
-
-    public function message(): string
-    {
-        return sprintf(
-            'the user "%s" does not exist',
-            $this->uniqueId->value()
-        );
-    }
-}
-```
-
-```php
-<?php
-
-namespace App\Repository;
-
-use App\Domain\UserId;
-use App\Repository\UserRepository;
-use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\Failure;
-use monsieurluge\Result\Result\Success;
-
-final class BaseUserRepository implements UserRepository
-{
-    [...] // variables declarations, constructor, etc
-
-    public function user(UserId $name): Result // Result<User>
-    {
-        $user = $this->storage->getUserByName($name->value());
-
-        return is_null($user)
-            ? new Failure(
-                new UserNotFound($name)
-            )
-            : new Success($this->userFactory->fromDbModel($user));
-    }
-}
-```
-
-### Result
-
-The Result objects helps to write declarative code and to throw away the usuals `if (is_null($object))` and `try catch` control structures.
-
-So, the Exceptions are only used for what they are originally intended for: throw an alert because of a exceptional situation that cannot be handled normally.
-
-Example, using a complete selling process:
-
-```php
-<?php
-
-final class Agent
-{
-    [...] // variables declarations, constructor, etc
-
-    public function sellProduct(Product $newSuperProduct) // Result<Bill>
-    {
-        return $this->callCenter
-            ->call(new PhoneNumber('0123456789')) // Result<Person>
-            ->then(new PresentProduct($newSuperProduct))
-            ->then(new Sale($newSuperProduct))
-            ->map(function (Person $client) use ($newSuperProduct) {
-                return $this->createBill($client, $newSuperProduct); // Bill
-            })
-            ->else(new SaleRefused($this));
-    }
-}
-```
-
-## Complete examples
-
-### Send a HTTP #200 or #404 response via a controller
-
-```php
-<?php
-
-use monsieurluge\Result\Action\CustomAction;
-use monsieurluge\Result\Error\BaseError;
-use monsieurluge\Result\Error\Error;
-use monsieurluge\Result\Result\Result;
-use monsieurluge\Result\Result\Success;
-use App\Domain\User;
-use App\Repository\UserRepository;
-use Symfony\Component\HttpFoundation\Response;
+// ---------------------------------------- interfaces
 
 interface User
 {
-    public function id(): string;
-
-    public function fullname(): string;
+    public function sendMessage(string $text): void;
 }
 
-class UserController
+interface UserRepository
 {
-    private $repository;
+    public function userById(int $uuid): User|null;
+}
 
-    public function __construct(UserRepository $repository)
+// ---------------------------------------- implementation
+
+$userRepository = new MySqlUserRepository();
+
+$user = $userRepository->userById(1234);
+
+if (true === is_null($user)) {
+    // error handling
+} else {
+    $user->sendMessage('Hi!');
+}
+```
+
+#### With Result
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function sendMessage(string $text): void;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): Result<User>;
+}
+
+// ---------------------------------------- implementation
+
+$userRepository = new MySqlUserRepository();
+
+$userRepository
+    ->userById(1234)
+    ->then(function (User $user) {
+        $user->sendMessage('Hi!');
+    })
+    ->else(function (Error $error) {
+        // error handling
+    });
+```
+
+### Within a HTTP controller
+
+Context: We want to fetch an user name and return it using an HTTP#200 response if the user is known, or via an HTTP#404 if the user is unknown.
+
+#### As usually seen
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function name(): string;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): User|null;
+}
+
+// ---------------------------------------- implementation
+
+class UserNameController
+{
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository)
     {
-        $this->repository = $repository;
+        $this->userRepository = $userRepository;
     }
 
-    public function index()
-    {
-        $userToResponse = function(User $user) { // f(User):Response
-            return new Success(
-                new Response(
-                    [ 'id' => $user->id(), 'name' => $user->fullname() ],
-                    Response::HTTP_OK
-                )
-            );
-        };
+    public function handle(int $uuid): Response {
+        $user = $this->userRepository->userById($uuid);
 
-        $createUserNotFoundResponse = function(Error $error) {
-            return new Response(
-                sprintf('user not found (error #%s)', $error->code()),
-                Response::HTTP_NOT_FOUND
+        if (true === is_null($user)) {
+            $response = new Response(
+                sprintf('the user %s does not exist', $uuid),
+                404
             );
-        };
+        } else {
+            $response = new Response($user->name(), 200);
+        }
 
-        return $userRepository
-            ->findByName('Homer Simpson')
-            ->map($userToResponse)
-            ->getOr($createUserNotFoundResponse);
+        return $response;
     }
 }
+```
+
+#### With Result
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function name(): string;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): Result<User>;
+}
+
+// ---------------------------------------- implementation
+
+class UserNameController
+{
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
+    public function handle(int $uuid): Response {
+        return $this->userRepository
+            ->userById($uuid)
+            ->map(function (User $user) {
+                return new Response($user->name(), 200);
+            })
+            ->getOr(function (Error $error) use ($uuid) {
+                return new Response(
+                    sprintf('the user %s does not exist', $uuid),
+                    404
+                );
+            });
+    }
+}
+```
+
+### How to manage multiple uncertainties ?
+
+Context: We want to add an user to a group. But only the corresponding IDs are provided. Both may not exist.
+
+#### As usually seen
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function name(): string;
+}
+
+interface Group
+{
+    public function add(User $user): void;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): User|null;
+}
+
+interface GroupRepository
+{
+    public function groupById(int $uuid): Group|null;
+}
+
+// ---------------------------------------- implementation
+
+$group = $this->groupRepository->groupById($groupUuid);
+$user  = $this->userRepository->userById($userUuid);
+
+if (true === is_null($user) || true === is_null($user)) {
+    // error handling
+} else {
+    $group->add($user);
+}
+```
+
+#### With Result
+
+```php
+<?php
+
+// ---------------------------------------- interfaces
+
+interface User
+{
+    public function name(): string;
+}
+
+interface Group
+{
+    public function add(User $user): void;
+}
+
+interface UserRepository
+{
+    public function userById(int $uuid): Result<User>;
+}
+
+interface GroupRepository
+{
+    public function groupById(int $uuid): Result<Group>;
+}
+
+// ---------------------------------------- implementation
+
+(new Combined([
+    $this->groupRepository->groupById($groupUuid),
+    $this->userRepository->userById($userUuid),
+]))
+    ->then(function (Group $group, User $user) {
+        $group->add($user);
+    })
+    ->else(function (Error $error) {
+        /** error handling */
+    });
+```
+
+or
+
+```php
+<?php
+
+// ---------------------------------------- implementation
+
+$this->groupRepository
+    ->groupById($groupUuid)
+    ->join($this->userRepository->userById($userUuid))
+    ->then(function (Group $group, User $user) {
+        $group->add($user);
+    })
+    ->else(function (Error $error) {
+        /** error handling */
+    });
 ```
