@@ -1,5 +1,7 @@
 # Result
 
+![logo](logo.png)
+
 The goal of the Result library is to say goodbye to the `if` and `try catch` control structures when requesting a storage or any object who can return either "nothing" or the desired result.
 
 The code also becomes more declarative and object oriented.
