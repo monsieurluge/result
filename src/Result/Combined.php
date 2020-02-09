@@ -69,7 +69,7 @@ final class Combined implements Result
      * Returns the combined values or the first Error encountered.
      * @codeCoverageIgnore
      *
-     * @return Result either a Result&lt;{x,y,z...}&gt; or an Error
+     * @return Result either a Result<{x,y,z...}> or an Error
      */
     private function and(): Result
     {

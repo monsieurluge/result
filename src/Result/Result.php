@@ -36,11 +36,11 @@ interface Result
      * Returns the result's value if it succeeded or the expression's return value
      *   if it is a failure. The failure's error will be provided to the expression.
      *
-     * <code>getOr: (Error -> &lt;U&gt;) -> &lt;T&gt;|&lt;U&gt;</code>
+     * <code>getOr: (Error -> <U>) -> <T>|<U></code>
      *
-     * @param Closure $expression the expression as follows: Error -> &lt;U&gt;
+     * @param Closure $expression the expression as follows: Error -> <U>
      *
-     * @return mixed either the result's value (&lt;T&gt;) or the expression's return value (&lt;U&gt;)
+     * @return mixed either the result's value (<T>) or the expression's return value (<U>)
      */
     public function getOr(Closure $expression);
 
@@ -56,24 +56,24 @@ interface Result
     /**
      * Maps the successful result's value to the mutation function and returns a new success.
      *
-     * <code>map: (&lt;T&gt; -> &lt;U&gt;) -> Result&lt;U&gt;</code>
+     * <code>map: (<T> -> <U>) -> Result<U></code>
      *
-     * @param Closure $mutate the mutation as follows: &lt;T&gt; -> &lt;U&gt;
+     * @param Closure $mutate the mutation as follows: <T> -> <U>
      *
-     * @return Result a Result&lt;U&gt;
+     * @return Result a Result<U>
      */
     public function map(Closure $mutate): Result;
 
     /**
      * Calls the action on the successful result's value.
      * The action MUST return a Result.
-     * The action SHOULD return a Result&lt;T&gt;
+     * The action SHOULD return a Result<T>
      *
-     * <code>then: (&lt;T&gt; -> Result&lt;T&gt;) -> Result&lt;T&gt;</code>
+     * <code>then: (<T> -> Result<T>) -> Result<T></code>
      *
-     * @param Closure $doSomething the action as follows: &lt;T&gt; -> Result&lt;T&gt;
+     * @param Closure $doSomething the action as follows: <T> -> Result<T>
      *
-     * @return Result a Result&lt;T&gt;
+     * @return Result a Result<T>
      */
     public function then(Closure $doSomething): Result;
 }

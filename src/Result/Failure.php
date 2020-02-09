@@ -12,7 +12,6 @@ use monsieurluge\Result\Result\Result;
  */
 final class Failure implements Result
 {
-
     /** @var Error **/
     private $error;
 
@@ -67,5 +66,4 @@ final class Failure implements Result
     {
         return $this;
     }
-
 }

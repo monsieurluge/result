@@ -11,7 +11,6 @@ use monsieurluge\Result\Result\Result;
  */
 final class Success implements Result
 {
-
     /** @var mixed **/
     private $value;
 
@@ -66,5 +65,4 @@ final class Success implements Result
     {
         return ($doSomething)($this->value);
     }
-
 }
